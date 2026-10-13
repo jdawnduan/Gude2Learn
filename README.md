@@ -31,6 +31,29 @@ python starter/evaluate.py results.json --data dataset
 No GPU yet? `python baseline/baseline.py --mock` runs the whole loop without a model.
 Any OpenAI-compatible server works: `--base-url` and `--model`.
 
+## Running on Apple Silicon (Ollama, no vLLM)
+
+vLLM has no Metal backend and the multimodal Apertus v1.5 needs ~20 GB, so on a 16 GB Mac this
+repository runs the text-only Apertus v1.5 build in Ollama and lets an open vision model do the
+seeing (allowed by the rules: Apertus does the language reasoning). Tested on an M2 Pro, 16 GB.
+
+```
+ollama pull hf.co/Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF   # Apertus v1.5 8B, text only, 5 GB
+ollama pull qwen3.5:9b-mlx                                   # vision model, lists the objects, 9 GB
+uv sync                                                      # numpy + opencv into .venv
+uv run python run.py --data dataset --out results.json       # one command for any folder of scenes
+uv run python starter/evaluate.py results.json --data dataset
+```
+
+`run.py` sees every scene once (cached in `results.scenes.json`), then asks Apertus once per
+instruction with the object list as text and schema-constrained JSON output. Both models do not fit
+in memory at once; the two stages run one after the other so Ollama swaps once. Close VMs and
+Teams first: with less than ~4 GB free the vision stage takes minutes per scene.
+
+`baseline/baseline.py` (Apertus alone, reading the photo) cannot run on this build: the text-only GGUF
+has no image path and Ollama answers HTTP 500 to the image part. `heldout/` needs a `calibration.json`
+next to the scene folders (`starter/scene_io.py` reads it); copy `dataset/calibration.json` if missing.
+
 ## What is in this repository
 
 | Path | What it is |

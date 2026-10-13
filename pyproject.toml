@@ -1,0 +1,20 @@
+[project]
+name = "see-it-say-it-pick-it"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Dawn", email = "jiaxin.duan@psi.ch" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "numpy>=2.5.4",
+    "opencv-python>=5.0.0.93",
+]
+
+[project.scripts]
+see-it-say-it-pick-it = "see_it_say_it_pick_it.pipeline:main"
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"
