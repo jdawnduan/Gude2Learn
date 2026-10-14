@@ -51,10 +51,31 @@ uv run python starter/evaluate.py results.json --data dataset
   (several minutes per scene) and Apertus is partly offloaded. Both work, only slower.
 - Windows has no system Python by default; `uv sync` downloads one. Use `uv run python ...` throughout.
 
-`run.py` sees every scene once (cached in `results.scenes.json`), then asks Apertus once per
-instruction with the object list as text and schema-constrained JSON output. Both models do not fit
-in memory at once; the two stages run one after the other so Ollama swaps once. Close VMs and
-Teams first: with less than ~4 GB free the vision stage takes minutes per scene.
+### How `run.py` works
+
+1. **See** (vision model, twice per scene, cached in `results.scenes.json`): one call lists every
+   object with a box; a second call asks only which objects lie on top of which and where the trays
+   are, because the first pass tends to miss the flat black tray and the stacking.
+2. **Table** (Python, no model): boxes become full-resolution pixels, duplicates are numbered left to
+   right (`red_gear_1`, `red_gear_2`), each object gets the tray or plate it lies in and what it lies
+   on. The target pixel is moved from the box centre onto the object's own pixels (the centre of a
+   banana's box is table), by colour against the box border.
+3. **Resolve** (Python, no model): the instruction's noun phrases are mapped to the table with a small
+   synonym list (fruit, cube, part, the yellow one) and the spatial cues (left, closest to, second from
+   the right, in the grey tray, with nothing on it, lying on, under) are evaluated against the
+   coordinates. The result is written as *reference hints* into the prompt, together with flags for
+   unsafe verbs, colours that match nothing ("blue cube") and unpickable things ("put the plate").
+4. **Plan** (Apertus, once per instruction, text only): the table, the hints and a fixed decision
+   order (unsafe, not there, cannot, ambiguous, plan) with worked examples. Output is
+   schema-constrained to pick/place steps over the names in this scene, or one question, or one
+   refusal; Python expands the steps into the submission format. Apertus makes every decision; the
+   hints only save it from doing geometry.
+
+Both models do not fit in memory at once; the two stages run one after the other so Ollama swaps
+once. Close VMs and Teams first: with less than ~4 GB free the vision stage takes minutes per scene.
+`--no-hints` runs the ablation without step 3, `--think` lets Apertus reason before answering,
+`--limit N` runs the first N instructions, and `results.raw.jsonl` keeps the table, hints and raw
+reply per instruction for the report.
 
 `baseline/baseline.py` (Apertus alone, reading the photo) cannot run on this build: the text-only GGUF
 has no image path and Ollama answers HTTP 500 to the image part. The held-out scenes:
