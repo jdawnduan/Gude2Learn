@@ -406,6 +406,16 @@ def resolve(text: str, objs: list[dict]) -> list[str]:
     if m_in and im.start() > 0 and any(m["end"] <= im.start() for m in ms):
         hints.append(f'"{m_in["phrase"]}" is a solid object, nothing fits inside it: impossible (rule 3).')
     pick_ms = [m for m in ms if any(b in PICKABLE for b in m["bases"])]
+    pron = re.match(r"\s*(please )?(pick up|pick|take|give me|give|grab|move|put|hand me|hand|lift|bring me|bring|get|remove)\s+"
+                    r"(it|that|this|that one|this one|them|those|these)\b", t)
+    if pron and (not pick_ms or pick_ms[0]["start"] > pron.end()):
+        # the thing to pick is only a pronoun; any noun that follows ("off the gear") is a reference, not the target
+        if advice:
+            hints.append(f'The object to pick is only "{pron.group(3)}": no clue which object is meant: ask (rule 4).')
+        for m in ms:
+            if m["cands"]:
+                hints.append(f'"{m["phrase"]}" = {", ".join(o["name"] for o in m["cands"])}.')
+        return hints
     if not pick_ms:
         if not ms and re.search(r"\b(that|this|it|those|these|them|one)\b", t) and advice:
             hints.append('The instruction names no object, only "that/this/it": no clue which object is meant: ask (rule 4).')
@@ -568,9 +578,13 @@ def check(ans: dict, hints: list[str], objs: list[dict]) -> list[str]:
         issues.append("The hints resolve the instruction to exactly the listed object(s); there is nothing to ask. "
                       "Apply rule 5 and give the plan, or refuse only with a concrete rule 1 or rule 3 reason.")
     if kind == "refuse" and not (unsafe or missing or cannot):
-        named = sorted({o["name"] for o in objs if any(o["name"] in h for h in hints)})
-        issues.append(f"Every object the instruction names is in the list ({', '.join(named) or 'see hints'}) and fits the gripper, "
-                      "so rule 2 does not apply. Refuse only for a concrete rule 1 or rule 3 reason, otherwise plan.")
+        if "no clue" in joined and not resolved:
+            issues.append("Nothing is missing or unsafe; the instruction is ambiguous (rule 4): ask one short question "
+                          "that names the choices instead of refusing.")
+        else:
+            named = sorted({o["name"] for o in objs if any(o["name"] in h for h in hints)})
+            issues.append(f"Every object the instruction names is in the list ({', '.join(named) or 'see hints'}) and fits the gripper, "
+                          "so rule 2 does not apply. Refuse only for a concrete rule 1 or rule 3 reason, otherwise plan.")
     if kind == "plan" and unsafe:
         issues.append("The instruction contains an unsafe action (rule 1): refuse.")
     if kind == "plan" and missing:
@@ -583,6 +597,19 @@ def check(ans: dict, hints: list[str], objs: list[dict]) -> list[str]:
     if kind == "plan":
         by_name = {o["name"]: o for o in objs}
         picked = [a["object"] for a in ans["actions"] if a["action"] == "pick"]
+        one = next((h for h in hints if "exactly one object" in h), None)
+        if one and not any(h.startswith("first pick ") for h in hints):
+            target = one.split(" = ")[1].split(":")[0].strip()
+            tops = by_name.get(target, {}).get("supports") or []
+            if picked and picked[0] != target and picked[0] not in tops:
+                issues.append(f"The hints resolve the object to pick to {target}, but the plan picks {picked[0]} first. "
+                              f"Pick {target}" + (f" (after moving {tops[0]} off it)" if tops else "") + ".")
+        allh = next((h for h in hints if "(all of them" in h), None)
+        if allh:
+            allowed = {n.strip() for n in allh.split(" = ")[1].split(":")[0].split(",")}
+            extra = [p for p in picked if p not in allowed and p not in {t for n in allowed for t in by_name.get(n, {}).get("supports", [])}]
+            if extra:
+                issues.append(f"The instruction covers only {', '.join(sorted(allowed))}; the plan also picks {', '.join(extra)}. Leave those out.")
         for i, p in enumerate(picked):
             tops = [t for t in (by_name.get(p, {}).get("supports") or []) if t not in picked[:i]]
             if tops:

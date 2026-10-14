@@ -75,6 +75,16 @@ def test_answer(objs):
     hints = resolve("pick up the red gear", objs)   # no clue -> a plan must be challenged
     assert check(to_answer('{"actions": [{"pick": "red_gear_1", "place": "none"}]}', objs, "x"), hints, objs)
     assert any("no clue" in h for h in resolve("give me that one", objs))
+    assert any("no clue" in h for h in resolve("take it off the gear", objs))
+    assert not any("exactly one" in h for h in resolve("take it off the mug", objs))
+    hints = resolve("give me that one", objs)   # a refusal here must be steered to a question, not a plan
+    issues = check(to_answer('{"actions": [{"refuse": "not there"}]}', objs, "x"), hints, objs)
+    assert issues and "ask" in issues[0]
+    hints = resolve("pick up the red gear closest to the mug", objs)   # resolved to red_gear_2, plan picks the mug
+    assert check(to_answer('{"actions": [{"pick": "mug", "place": "none"}]}', objs, "x"), hints, objs)
+    hints = resolve("put all the red gears in the black tray except the one on the right", objs)
+    hints = resolve("put everything from the grey tray in the black tray", objs)  # = red_gear_1 only; mug is extra
+    assert check(to_answer('{"actions": [{"pick": "red_gear_1", "place": "black_tray"}, {"pick": "mug", "place": "black_tray"}]}', objs, "x"), hints, objs)
     hints = resolve("put the red gear under the mug in the black tray", objs)
     assert any(h.startswith("first pick mug") for h in hints)
     assert check(to_answer('{"actions": [{"pick": "red_gear_1", "place": "black_tray"}]}', objs, "x"), hints, objs)
