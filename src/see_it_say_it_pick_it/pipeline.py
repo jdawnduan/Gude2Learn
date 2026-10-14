@@ -2,14 +2,14 @@
 """Two-stage pipeline: an open vision model lists the objects, Apertus plans in text.
 
     ollama pull hf.co/Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF   # Apertus v1.5 8B, text only
-    ollama pull qwen3.5:9b-mlx                                   # any open vision model
+    ollama pull qwen3.5:9b                                       # any open vision model (Mac: qwen3.5:9b-mlx)
     python run.py --data dataset --out results.json
     python starter/evaluate.py results.json --data dataset
 
 Why two stages: the multimodal Apertus v1.5 needs a vLLM/transformers fork and ~20 GB of memory, so on
-a 16 GB Mac only the text-only GGUF runs. The challenge allows any open vision model to help Apertus
-see, as long as Apertus does the language reasoning. Stage 1 (see) runs once per scene and is cached in
-<out>.scenes.json; stage 2 (plan) runs once per instruction. Sequential stages mean Ollama holds one
+a 16 GB Mac or a 5 GB GPU only the text-only GGUF runs. The challenge allows any open vision model to help
+Apertus see, as long as Apertus does the language reasoning. Stage 1 (see) runs once per scene and is cached
+in <out>.scenes.json; stage 2 (plan) runs once per instruction. Sequential stages mean Ollama holds one
 model at a time, which is what fits in 16 GB.
 
 Writes <out> (the file you score) and <out>.raw.jsonl (scene table + raw Apertus reply per instruction,
@@ -173,7 +173,8 @@ def main():
     ap.add_argument("--out", type=Path, default=Path("results.json"))
     ap.add_argument("--base-url", default="http://localhost:11434", help="Ollama")
     ap.add_argument("--model", default="hf.co/Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF", help="Apertus, does the reasoning")
-    ap.add_argument("--vision-model", default="qwen3.5:9b-mlx", help="any open vision model, only lists objects")
+    ap.add_argument("--vision-model", default="qwen3.5:9b",
+                    help="any open vision model, only lists objects (Apple Silicon: qwen3.5:9b-mlx; small GPU: qwen3.5:4b)")
     ap.add_argument("--max-side", type=int, default=1024, help="resize the photo for the vision model")
     ap.add_argument("--limit", type=int, help="only the first N instructions")
     ap.add_argument("--team", default="Apertus-2A-ZHAW")

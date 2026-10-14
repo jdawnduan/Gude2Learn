@@ -31,19 +31,25 @@ python starter/evaluate.py results.json --data dataset
 No GPU yet? `python baseline/baseline.py --mock` runs the whole loop without a model.
 Any OpenAI-compatible server works: `--base-url` and `--model`.
 
-## Running on Apple Silicon (Ollama, no vLLM)
+## Running with Ollama (no vLLM, no big GPU)
 
-vLLM has no Metal backend and the multimodal Apertus v1.5 needs ~20 GB, so on a 16 GB Mac this
-repository runs the text-only Apertus v1.5 build in Ollama and lets an open vision model do the
-seeing (allowed by the rules: Apertus does the language reasoning). Tested on an M2 Pro, 16 GB.
+The multimodal Apertus v1.5 needs a vLLM fork and ~20 GB, so this repository runs the text-only
+Apertus v1.5 build in Ollama and lets an open vision model do the seeing (allowed by the rules:
+Apertus does the language reasoning). Tested on an M2 Pro 16 GB Mac and on Windows 11 with a
+5 GB Quadro P2200 + 32 GB RAM.
 
 ```
 ollama pull hf.co/Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF   # Apertus v1.5 8B, text only, 5 GB
-ollama pull qwen3.5:9b-mlx                                   # vision model, lists the objects, 9 GB
-uv sync                                                      # numpy + opencv into .venv
+ollama pull qwen3.5:9b                                       # vision model, lists the objects, 7 GB
+uv sync                                                      # Python 3.13 + numpy + opencv into .venv
 uv run python run.py --data dataset --out results.json       # one command for any folder of scenes
 uv run python starter/evaluate.py results.json --data dataset
 ```
+
+- Apple Silicon: `ollama pull qwen3.5:9b-mlx` and pass `--vision-model qwen3.5:9b-mlx`.
+- Small GPU (≤ 5 GB VRAM): `qwen3.5:4b` fits entirely on the card; the 9B runs mostly on the CPU
+  (several minutes per scene) and Apertus is partly offloaded. Both work, only slower.
+- Windows has no system Python by default; `uv sync` downloads one. Use `uv run python ...` throughout.
 
 `run.py` sees every scene once (cached in `results.scenes.json`), then asks Apertus once per
 instruction with the object list as text and schema-constrained JSON output. Both models do not fit
@@ -51,8 +57,11 @@ in memory at once; the two stages run one after the other so Ollama swaps once. 
 Teams first: with less than ~4 GB free the vision stage takes minutes per scene.
 
 `baseline/baseline.py` (Apertus alone, reading the photo) cannot run on this build: the text-only GGUF
-has no image path and Ollama answers HTTP 500 to the image part. `heldout/` needs a `calibration.json`
-next to the scene folders (`starter/scene_io.py` reads it); copy `dataset/calibration.json` if missing.
+has no image path and Ollama answers HTTP 500 to the image part. The held-out scenes:
+
+```
+uv run python run.py --data heldout --out results_heldout.json
+```
 
 ## What is in this repository
 
@@ -113,7 +122,7 @@ refusing everything scores 0. A worked example is in [EVALUATION.md](EVALUATION.
 1. A public GitHub repository under Apache 2.0, with a README that lets someone else
    reproduce your result in under 15 minutes.
 2. Your results file in this format, scored with `starter/evaluate.py`.
-3. `results_heldout.json`: your answers for the five held-out scenes, **released on 14.10 at 12:00 ** in `heldout/`, due 16.10 at 12:00. Your repository needs **one command** that runs your pipeline on any folder of scenes; we use it to re-run the top teams.
+3. `results_heldout.json`: your answers for the five held-out scenes, **released on 14.10 at 12:00** in `heldout/`, due 16.10 at 12:00. Your repository needs **one command** that runs your pipeline on any folder of scenes; we use it to re-run the top teams.
 4. A 1–2 page report on where Apertus had difficulty.
 5. Five slides (PDF).
  5.1 Team and approach in one sentence
