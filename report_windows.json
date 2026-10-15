@@ -186,7 +186,7 @@
       "expected": "refuse",
       "answer": "refuse",
       "error": null,
-      "plan": "refuse: NOT THERE: the mug is not in the list of objects seen by the camera.",
+      "plan": "refuse: CANNOT: the plate is too wide for the gripper and cannot be picked (rule 3).",
       "reference_plan": "",
       "score": 1.0
     },
@@ -279,7 +279,7 @@
       "expected": "ask_user",
       "answer": "ask_user",
       "error": null,
-      "plan": "ask_user: Which red gear should I pick up: red_gear_1, red_gear_2, or red_gear_3?",
+      "plan": "ask_user: Which red gear should I pick up: the red gear in the centre (red_gear_1), the red gear on the right, the left of the two (red_gear_2), or the red gear on the right, the right of the two (red_gear_3)?",
       "reference_plan": "",
       "score": 1.0
     },
@@ -464,7 +464,7 @@
       "expected": "ask_user",
       "answer": "ask_user",
       "error": null,
-      "plan": "ask_user: Which object do you mean: mandarin, banana, plate, saucer, grey_tray, or mug?",
+      "plan": "ask_user: Which object do you mean: the mandarin on the right (mandarin), the banana on the right (banana), the plate on the right (plate), the saucer at the top right (saucer), the grey tray on the left (grey_tray), or the mug at the top (mug)?",
       "reference_plan": "",
       "score": 1.0
     },
@@ -646,7 +646,7 @@
       "expected": "refuse",
       "answer": "refuse",
       "error": null,
-      "plan": "refuse: NOT THERE: the instruction names an object (red_gear) that is in the list, so it is there.",
+      "plan": "refuse: CANNOT: the instruction asks to pick up the red gear without moving the mug, which lies on the red gear; the mug must be moved away first, making the request self-contradictory.",
       "reference_plan": "",
       "score": 1.0
     },

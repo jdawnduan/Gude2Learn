@@ -169,7 +169,8 @@ def ollama_chat(base_url: str, model: str, prompt: str | list[dict], *, image_b6
 
 
 # ----------------------------------------------------------------------------- scene table
-CACHE_VERSION = 2   # bump when scene_table changes, so an old results.scenes.json is rebuilt from its vision replies
+CACHE_VERSION = 3   # bump when scene_table changes, so an old results.scenes.json is rebuilt from its vision replies
+WORDS = {n: n.replace("_", " ") for n in NAMES} | {"small_part": "small white part"}   # internal name -> words
 
 
 def reading_order(objs: list[dict], h: int, band: float = 0.15) -> list[dict]:
@@ -267,7 +268,67 @@ def scene_table(seen: dict, w: int, h: int, layout: dict | None = None) -> list[
             a["on_top_of"] = best[1]["name"]
     for o in objs:
         o["supports"] = [x["name"] for x in objs if x["on_top_of"] == o["name"]]
+    add_descriptions(objs, w, h)
     return objs
+
+
+def add_descriptions(objs: list[dict], w: int, h: int) -> None:
+    """o['desc']: the object in words a person understands ("the red gear at the top left, in the grey tray, with the
+    yellow gear on it"). Region = a 3 x 3 grid over the photo; two objects of one type in the same region are told
+    apart by left/right or upper/lower. Used to render the names in questions and refusal reasons."""
+    def region(o):
+        u, v = o["centre"]
+        row = "top" if v < h / 3 else "bottom" if v > 2 * h / 3 else ""
+        col = "left" if u < w / 3 else "right" if u > 2 * w / 3 else ""
+        return f"at the {row} {col}" if row and col else f"at the {row}" if row else f"on the {col}" if col else "in the centre"
+    for o in objs:
+        o["desc"] = f"the {WORDS[o['base']]} {region(o)}"
+    for base in {o["base"] for o in objs}:
+        for reg in {region(o) for o in objs if o["base"] == base}:
+            same = [o for o in objs if o["base"] == base and region(o) == reg]
+            if len(same) < 2:
+                continue
+            us, vs = [o["centre"][0] for o in same], [o["centre"][1] for o in same]
+            horizontal = max(us) - min(us) >= max(vs) - min(vs)
+            same.sort(key=lambda o: o["centre"][0] if horizontal else o["centre"][1])
+            n = {2: "two", 3: "three", 4: "four"}.get(len(same), str(len(same)))
+            if len(same) == 2:
+                labels = ["the left", "the right"] if horizontal else ["the upper", "the lower"]
+            else:
+                first, last = ("leftmost", "rightmost") if horizontal else ("topmost", "bottommost")
+                labels = [f"the {first}"] + [f"the {i + 1}{'nd' if i == 1 else 'rd' if i == 2 else 'th'} from the {first[:-4]}"
+                                             for i in range(1, len(same) - 1)] + [f"the {last}"]
+            for o, lab in zip(same, labels):
+                o["desc"] += f", {lab} of the {n}"
+    by_name = {o["name"]: o for o in objs}
+    for o in objs:
+        if o["in_tray"]:
+            o["desc"] += (", in " if o["in_tray"].endswith("tray") else ", on ") + "the " + WORDS[by_name[o["in_tray"]]["base"]]
+        if o["on_top_of"] and o["on_top_of"] in by_name:
+            o["desc"] += f", lying on the {WORDS[by_name[o['on_top_of']]['base']]}"
+        if o.get("supports"):
+            o["desc"] += ", with the " + " and the ".join(WORDS[by_name[s]["base"]] for s in o["supports"] if s in by_name) + " on it"
+
+
+def humanize(text: str, objs: list[dict], full: bool = True) -> str:
+    """Every internal name in a question or reason -> "<description> (<name>)", so a person can tell red_gear_2 from
+    red_gear_3 without the table. The name stays so the answer can refer to it. full=False (refusal reasons): only
+    duplicated types get the description, a unique name just becomes words ("red_cube" -> "the red cube")."""
+    by_name = {o["name"]: o for o in objs if o.get("desc")}
+    if not by_name:
+        return text
+    dup = {o["name"] for o in objs if o["name"] != o["base"]}
+    names = "|".join(re.escape(n) for n in sorted(by_name, key=len, reverse=True))
+    # a determiner or possessive already written by Apertus ("the mug", "a person's hand") is kept, not doubled
+    pat = re.compile(r"(?i)(?:\b(the|a|an|no|any|this|that|each|every|another|one|\w+'s)\s+)?\b(" + names + r")\b")
+
+    def render(m):
+        det, name = m.group(1), m.group(2)
+        words = by_name[name]["desc"] if full or name in dup else "the " + WORDS[by_name[name]["base"]]
+        if det and det.lower() != "the":
+            words = det + words[3:]
+        return f"{words} ({name})" if full or name in dup else words
+    return pat.sub(render, text)
 
 
 def refine_pixel(rgb: np.ndarray, bbox: list[int]) -> list[int]:
@@ -577,6 +638,10 @@ def check(ans: dict, hints: list[str], objs: list[dict]) -> list[str]:
     if kind == "ask_user" and resolved and "no clue" not in joined and not (unsafe or missing or cannot):
         issues.append("The hints resolve the instruction to exactly the listed object(s); there is nothing to ask. "
                       "Apply rule 5 and give the plan, or refuse only with a concrete rule 1 or rule 3 reason.")
+    if kind == "ask_user" and "no clue" in joined and not any(o["name"] in ans["actions"][0].get("question", "") for o in objs):
+        cands = next((h.split(" could be ")[1].split(" and the instruction")[0] for h in hints if " could be " in h), None)
+        issues.append("Your question names none of the listed objects, so the person cannot answer it. Ask again and name "
+                      + (f"the choices: {cands}." if cands else "the objects that could be meant, by their names from the list."))
     if kind == "refuse" and not (unsafe or missing or cannot):
         if "no clue" in joined and not resolved:
             issues.append("Nothing is missing or unsafe; the instruction is ambiguous (rule 4): ask one short question "
@@ -585,6 +650,12 @@ def check(ans: dict, hints: list[str], objs: list[dict]) -> list[str]:
             named = sorted({o["name"] for o in objs if any(o["name"] in h for h in hints)})
             issues.append(f"Every object the instruction names is in the list ({', '.join(named) or 'see hints'}) and fits the gripper, "
                           "so rule 2 does not apply. Refuse only for a concrete rule 1 or rule 3 reason, otherwise plan.")
+    if kind == "refuse" and (unsafe or cannot) and not missing \
+            and re.search(r"not (there|in the list|listed)", ans["actions"][0].get("reason", ""), re.I):
+        # the refusal is right but its reason is wrong ("not there" for a listed object): state the real one
+        why = " ".join(h for h in hints if "unsafe action" in h or "(rule 3)" in h)
+        issues.append("Your reason says an object is not there, but every object the instruction names is in the list. "
+                      f"The hints give the real reason: {why} Refuse again and state that reason.")
     if kind == "plan" and unsafe:
         issues.append("The instruction contains an unsafe action (rule 1): refuse.")
     if kind == "plan" and missing:
@@ -728,6 +799,11 @@ def main():
                     reply2 = ollama_chat(args.base_url, args.model, msgs, schema=schema, think=True if args.think else None)
                     ans = to_answer(reply2, objs, iid)
                 bad += ans["actions"][0].get("question") == FALLBACK_QUESTION
+                for a in ans["actions"]:   # what the person reads: names rendered as descriptions
+                    if "question" in a:
+                        a["question"] = humanize(a["question"], objs)
+                    if "reason" in a:
+                        a["reason"] = humanize(a["reason"], objs, full=False)
                 results.append(ans)
                 raw.write(json.dumps({"instruction_id": iid, "instruction": text, "scene": table_text(objs), "hints": hints,
                                       "reply": reply, "check": issues, "reply2": reply2}) + "\n")

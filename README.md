@@ -66,10 +66,18 @@ uv run python starter/evaluate.py results.json --data dataset
    coordinates. The result is written as *reference hints* into the prompt, together with flags for
    unsafe verbs, colours that match nothing ("blue cube") and unpickable things ("put the plate").
 4. **Plan** (Apertus, once per instruction, text only): the table, the hints and a fixed decision
-   order (unsafe, not there, cannot, ambiguous, plan) with worked examples. Output is
+   order (unsafe, not there, cannot, ambiguous, plan) and abstract answer forms. Output is
    schema-constrained to pick/place steps over the names in this scene, or one question, or one
    refusal; Python expands the steps into the submission format. Apertus makes every decision; the
    hints only save it from doing geometry.
+5. **Self-check** (Apertus, only when needed): if the answer contradicts a fact in the hints (asks
+   although one object matches, refuses an object that is listed, plans an unsafe verb, picks the
+   bottom object of a stack first), Apertus sees its own answer and the contradiction and answers
+   once more.
+6. **Render** (Python, no model): in a question or a refusal reason, every internal name is shown
+   as a description a person can act on, built from the same geometry: "Which red gear: the red gear
+   on the left, in the grey tray (red_gear_1), or the red gear in the centre, with the yellow gear on
+   it (red_gear_2)?" The name stays in brackets so the reply can use it.
 
 Both models do not fit in memory at once; the two stages run one after the other so Ollama swaps
 once. Close VMs and Teams first: with less than ~4 GB free the vision stage takes minutes per scene.
@@ -106,7 +114,7 @@ uv run python run.py --data heldout --out results_heldout.json
              {"action": "pick", "object": "red_gear_2"}, {"action": "place", "object": "grey_tray"}]}
 
 {"instruction_id": "scene_03_i5", "target_pixel": null,
- "actions": [{"action": "ask_user", "question": "Which red gear do you mean?"}]}
+ "actions": [{"action": "ask_user", "question": "Which red gear do you mean: the red gear on the left (red_gear_1) or the red gear on the right (red_gear_2)?"}]}
 
 {"instruction_id": "scene_02_i5", "target_pixel": null,
  "actions": [{"action": "refuse", "reason": "The plate does not fit in the mug."}]}

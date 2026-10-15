@@ -6,7 +6,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "starter"))
 from evaluate import answer_type  # noqa: E402
 
-from see_it_say_it_pick_it.pipeline import FALLBACK_QUESTION, check, resolve, scene_table, to_answer  # noqa: E402
+from see_it_say_it_pick_it.pipeline import FALLBACK_QUESTION, check, humanize, resolve, scene_table, to_answer  # noqa: E402
 
 SEEN = {"objects": [
     {"name": "red_gear", "bbox": [500, 500, 600, 600], "on_top_of": None},
@@ -28,6 +28,25 @@ def test_table():
     assert by["yellow_gear"]["on_top_of"] == "red_gear_2"          # box-overlap fallback for stacking
     assert by["red_gear_2"]["supports"] == ["yellow_gear"]
     assert by["mug"]["in_tray"] == "black_tray"                     # tray added by the layout pass
+    # descriptions a person can read; the two red gears sit in different regions
+    assert by["red_gear_1"]["desc"] == "the red gear on the left, in the grey tray"
+    assert by["red_gear_2"]["desc"] == "the red gear in the centre, with the yellow gear on it"
+    assert by["yellow_gear"]["desc"] == "the yellow gear in the centre, lying on the red gear"
+    assert by["mug"]["desc"] == "the mug at the top right, in the black tray"
+    q = humanize("Which red gear: red_gear_1 or red_gear_2?", objs)
+    assert q == ("Which red gear: the red gear on the left, in the grey tray (red_gear_1) or "
+                 "the red gear in the centre, with the yellow gear on it (red_gear_2)?")
+    # same type, same region: told apart by left/right
+    three = scene_table({"objects": [{"name": "red_gear", "bbox": [400 + 100 * i, 450, 460 + 100 * i, 550], "on_top_of": None}
+                                     for i in range(3)]}, 1000, 1000)
+    assert [o["desc"] for o in three] == ["the red gear in the centre, the leftmost of the three",
+                                          "the red gear in the centre, the 2nd from the left of the three",
+                                          "the red gear in the centre, the rightmost of the three"]
+    # "the" written by Apertus is not doubled; in a reason only duplicated types get the description
+    assert humanize("put the mug on the plate", objs) == \
+        "put the mug at the top right, in the black tray (mug) on the plate"   # no plate seen: the word stays
+    assert humanize("the red_cube lies on red_gear_1; put the mug aside", objs, full=False) == \
+        "the red_cube lies on the red gear on the left, in the grey tray (red_gear_1); put the mug aside"
     return objs
 
 
@@ -85,6 +104,9 @@ def test_answer(objs):
     hints = resolve("put all the red gears in the black tray except the one on the right", objs)
     hints = resolve("put everything from the grey tray in the black tray", objs)  # = red_gear_1 only; mug is extra
     assert check(to_answer('{"actions": [{"pick": "red_gear_1", "place": "black_tray"}, {"pick": "mug", "place": "black_tray"}]}', objs, "x"), hints, objs)
+    hints = resolve("pick up the red gear on the left without moving the mug", objs)   # rule 3, but the reason says "not there"
+    issues = check(to_answer('{"actions": [{"refuse": "NOT THERE: red_gear_1 is in the list, so it is there."}]}', objs, "x"), hints, objs)
+    assert issues and "reason says" in issues[0]
     hints = resolve("put the red gear under the mug in the black tray", objs)
     assert any(h.startswith("first pick mug") for h in hints)
     assert check(to_answer('{"actions": [{"pick": "red_gear_1", "place": "black_tray"}]}', objs, "x"), hints, objs)

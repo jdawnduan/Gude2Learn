@@ -12,6 +12,11 @@ vision model, temperature 0, schema-constrained decoding.
 | 14.10 | Win11 | + stacking/no-clue/under checks, pronoun hint, part-label fallback, vision prompt for parts | 38/40 | 26.3 | 1/40 | 59.6 |
 | 14.10 | Win11 | + "no clue" refusals steered to a question, pronoun-object rule ("take it off the gear") | 38/40 | 29.2 | 1/40 | **62.5** |
 
+15.10: questions and refusal reasons render every internal name as a description built from the geometry
+("the red gear on the left, in the grey tray (red_gear_1)"), and a refusal whose reason says "not there"
+although everything named is listed gets one more self-check round. Scores unchanged by design; see the
+table below for the re-run.
+
 The two remaining grounding misses are vision labels: the three machine parts (grey, white, small white)
 are confused by the vision model, so "the grey part closest to the mug" and "the small white part" land on
 the wrong part or are reported missing.
