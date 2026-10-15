@@ -633,7 +633,11 @@
         },
         {
           "action": "place",
-          "object": "table"
+          "object": "table",
+          "pixel": [
+            104,
+            1944
+          ]
         },
         {
           "action": "pick",

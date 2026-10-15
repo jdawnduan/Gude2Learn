@@ -747,10 +747,14 @@
         {
           "action": "pick",
 <<<<<<< HEAD
+<<<<<<< HEAD
           "object": "red_cube",
+=======
+          "object": "yellow_gear",
+>>>>>>> 377d59b (new results)
           "pixel": [
-            2104,
-            1009
+            1743,
+            1510
           ]
         },
         {
@@ -932,19 +936,27 @@
         },
         {
           "action": "place",
-          "object": "table"
+          "object": "table",
+          "pixel": [
+            1520,
+            232
+          ]
         },
         {
           "action": "pick",
-          "object": "grey_part",
+          "object": "yellow_gear",
           "pixel": [
-            1940,
-            1047
+            1917,
+            1395
           ]
         },
         {
           "action": "place",
-          "object": "table"
+          "object": "grey_tray",
+          "pixel": [
+            1179,
+            963
+          ]
         },
         {
           "action": "pick",
@@ -1009,9 +1021,17 @@
         {
           "action": "place",
 <<<<<<< HEAD
+<<<<<<< HEAD
           "object": "grey_tray",
 =======
           "object": "table"
+=======
+          "object": "table",
+          "pixel": [
+            1520,
+            232
+          ]
+>>>>>>> 377d59b (new results)
         },
         {
           "action": "pick",
@@ -1040,7 +1060,11 @@
         },
         {
           "action": "place",
-          "object": "table"
+          "object": "table",
+          "pixel": [
+            1520,
+            232
+          ]
         },
         {
           "action": "pick",
@@ -1053,7 +1077,11 @@
         },
         {
           "action": "place",
-          "object": "table"
+          "object": "table",
+          "pixel": [
+            1520,
+            232
+          ]
         },
         {
           "action": "pick",
