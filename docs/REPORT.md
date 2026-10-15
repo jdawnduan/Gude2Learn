@@ -1,8 +1,9 @@
 # Where Apertus had difficulty
 
-Team Apertus-2A-ZHAW, Hack Apertus 2026, "See It, Say It, Pick It". Apertus v1.5 8B, text-only, 4-bit
-(a community Q4_K_M GGUF of the swiss-ai weights) in Ollama, temperature 0, schema-constrained output;
-qwen3.5 9B as the vision model; a 5 GB GPU.
+Team Apertus-2A-ZHAW, Hack Apertus 2026, "See It, Say It, Pick It". Team: Jiaxin Duan (PSI) and Claude
+Code (Anthropic's coding agent, used throughout for the pipeline, the reviews and this report). Apertus
+v1.5 8B, text-only, 4-bit (a community Q4_K_M GGUF of the swiss-ai weights) in Ollama, temperature 0,
+schema-constrained output; qwen3.5 9B as the vision model; a 5 GB GPU.
 
 ## What Apertus is asked to do
 
@@ -133,11 +134,27 @@ model and Ollama's build of Qwen 3.5 9B, both unmodified.
   exercises.
 - Plans beyond the first pick are not scored; the review fixes above came from reading them by hand.
 
-## Not tried, expected to help
+## Future work
 
-**Apertus 70B** (patterns 1, 5, 6 and 7 are reasoning failures a larger model should make less often; 8B
-at 4 bit was chosen so the pipeline runs on a laptop). **Think mode** (`--think`, implemented, unmeasured,
-about twice the time per instruction). **A stronger or higher-resolution vision model** (`--max-side
-1536`, or a 30B-class VLM), which would make the part-label and stacking code unnecessary. **Geometric
-tray detection** (the camera is fixed and the trays have a known size), which would close the black-tray
-gap without a model call.
+Not tried, expected to help, in the order we would do them:
+
+1. **Geometric tray detection.** The camera is fixed and the trays have a known size, so a threshold and
+   contour pass would find the black tray in every photo without a model call and close the gap that
+   leaves it out of 7 of 15 tables. About half a day, plus a cache rebuild.
+2. **Containment and stacking from pixels, not boxes.** Containment by the fraction of an object's box
+   inside the container instead of its centre; stacking from the colour-refined blobs instead of raw box
+   overlap; no "largest / smallest" description when a box is shrunk by occlusion. About a day, all in the
+   table builder, unit-testable without a model.
+3. **An out-of-distribution check.** Ten new instructions in fresh wording ("the thing next to the cup",
+   "the gear nearest the camera"), run once and inspected, to show what happens when a phrase is outside
+   the synonym list. Honest either way.
+4. **A fresh Linux run of the final code**, to close the last provenance gap in the nondeterminism note.
+5. **Apertus 70B.** Patterns 1, 5, 6 and 7 are reasoning failures a larger model should make less often;
+   8B at 4 bit was chosen so the pipeline runs on a laptop.
+6. **Think mode** (`--think`, implemented, unmeasured, about twice the time per instruction).
+7. **A stronger or higher-resolution vision model** (`--max-side 1536`, or a 30B-class VLM), which would
+   make the part-label and stacking code unnecessary.
+8. **Refusal labels and question choices.** Tell Apertus the expected rule label in the check message when
+   the reason contradicts the hint's rule, and exclude unpickable objects from "no clue" choices.
+9. **Code structure.** Split the one module into see, resolve, plan and render, with a small object
+   dataclass; add a canned-reply CI run of `main()` beyond the two-instruction stub that exists now.
