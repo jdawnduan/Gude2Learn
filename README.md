@@ -283,7 +283,7 @@ the instruction text.
 | `tests/test_pipeline.py` | checks without a model: table, resolver, answer format, self-check rules |
 | `results.json`, `results_heldout.json`, `report.json` | our answers and the scorer report |
 | `attempts/` | run log, earlier scorer reports, raw traces of the final run |
-| `docs/REPORT.md`, `docs/slides.pdf` | report and slides |
+| `docs/REPORT.md`, `docs/slides.pdf`, `docs/DEVPOST.md` | report, slides, the Devpost submission text |
 | `dataset/`, `heldout/` | the organisers' scenes: photos, instructions, calibration, ground truth (CC BY 4.0) |
 | `starter/evaluate.py`, `starter/scene_io.py` | the official scorer; scene loading and pixel-to-robot transform |
 | `schema/result.schema.json`, `EVALUATION.md`, `docs/DATA.md`, `docs/safety_primer.md` | the organisers' answer format, scoring, data and safety notes |

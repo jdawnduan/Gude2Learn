@@ -111,7 +111,8 @@ up the red gear with nothing on it" (both gears carried something in the table) 
 tray" (no tray in the table), both asked instead of planned. Where the table was the same, Apertus gave the same
 answer type on all 48 remaining dev instructions. The GGUF build `qwen3.5:9b` is the one behind every committed
 number; it was not run on the Mac. Taking a bare array as the object list and applying a stack claim only when
-the boxes touch would recover most of the Mac loss; neither change was made before submission.
+the boxes touch would recover most of the Mac loss; we left both as future work rather than change the pipeline
+after the last fresh runs.
 
 ## What we disclose
 

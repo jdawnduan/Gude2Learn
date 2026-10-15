@@ -84,8 +84,8 @@ in the table, "the gear in the grey tray" because no tray was in the table. Wher
 the same answer type on all 48 remaining dev instructions and, on the 38 plans among them, the same first pick on 37. The GGUF build `qwen3.5:9b`
 is the one behind every committed number; it was not run on the Mac. Two small code changes would recover most of the
 Mac loss (take a bare array as the object list; apply a stack claim only when the two boxes touch): rebuilding the Mac
-tables offline with the first one restores the full object list of both held-out scenes. Neither change was made
-before submission; the `setup.sh` auto-selection of the MLX build was removed.
+tables offline with the first one restores the full object list of both held-out scenes. Both are left as future work
+rather than change the pipeline after the last fresh runs; the `setup.sh` auto-selection of the MLX build was removed.
 
 ## What each step fixed
 
