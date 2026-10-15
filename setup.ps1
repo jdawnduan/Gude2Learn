@@ -86,10 +86,9 @@ if (Serving) { Ok 'Ollama answers on localhost:11434' } else {
 }
 
 Step 'Models (pulled only if missing; 12 GB in total, takes 5-30 min depending on the connection)'
-$have = (ollama list) -join "`n"
+$have = @(ollama list | Select-Object -Skip 1 | ForEach-Object { ($_ -split '\s+')[0] })   # exact tags: qwen3.5:4b is not the 9b
 foreach ($m in @($Apertus, $VisionModel)) {
-    $short = $m.Split('/')[-1].Split(':')[0]
-    if ($have -match [regex]::Escape($short)) { Ok "$m present" } else { Write-Host "   pulling $m"; ollama pull $m; if ($LASTEXITCODE -ne 0) { exit 1 } }
+    if ($have -contains $m -or $have -contains "${m}:latest") { Ok "$m present" } else { Write-Host "   pulling $m"; ollama pull $m; if ($LASTEXITCODE -ne 0) { exit 1 } }
 }
 
 if ($Run -in @('dev', 'all')) {

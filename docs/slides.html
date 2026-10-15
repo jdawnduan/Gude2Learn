@@ -118,9 +118,10 @@ tr.repro td.num{font-style:normal}
 .call.a{background:var(--apertus-bg)} .call.a h3{color:var(--apertus)}
 
 /* ---------- slide 3 ---------- */
-.s3 table{font-size:11px;margin-top:8px;line-height:1.3}
-.s3 td,.s3 th{padding:3px 8px}
-.fixes{display:grid;grid-template-columns:1fr 1fr;gap:5px 22px;margin-top:9px;font-size:11.5px}
+.s3 table{font-size:10.5px;margin-top:6px;line-height:1.28}
+.s3 td,.s3 th{padding:2.5px 7px}
+.fixes{display:grid;grid-template-columns:1fr 1fr;gap:4px 20px;margin-top:7px;font-size:11px}
+.s3 .formula{margin-top:6px;font-size:10.5px}
 .fixes div{display:flex;gap:8px;align-items:baseline}
 .fixes .d{font-family:var(--display);font-weight:600;color:var(--apertus);white-space:nowrap;font-variant-numeric:tabular-nums;flex:0 0 96px}
 .formula{font-size:11px;color:var(--ink-2);margin-top:8px}
@@ -164,7 +165,7 @@ tr.repro td.num{font-style:normal}
     <h1>See It, Say It, Pick It</h1>
     <p class="sub">One photo of a robot workcell and one English sentence become a safe robot action: a plan, a question, or a refusal.</p>
   </div>
-  <p class="idea"><strong>The idea in one sentence:</strong> the smallest Apertus (8B, 4-bit, text-only) makes every decision, while an open vision model lists the objects and plain Python turns boxes into a scene table with geometry hints, so the whole pipeline runs locally on a 5&nbsp;GB GPU and reproduces with one command.</p>
+  <p class="idea"><strong>The idea in one sentence:</strong> the smallest Apertus (8B, 4-bit, text-only) writes every answer, while an open vision model lists the objects and plain Python turns boxes into a scene table with geometry hints, so the whole pipeline runs locally on a 5&nbsp;GB GPU and reproduces with one command.</p>
   <div class="tiles">
     <div class="tile hero">
       <div class="lbl">Dev set, script score</div>
@@ -193,7 +194,7 @@ tr.repro td.num{font-style:normal}
 <!-- 2 -->
 <div class="frame"><section class="slide s2">
   <div class="eyebrow">Pipeline · which model does what</div>
-  <h2>Six steps, one decision maker</h2>
+  <h2>Six steps, one model writes the answer</h2>
   <div class="io">
     <span><strong>In:</strong> photo 2448&times;2048 px + one instruction, e.g. <span class="mono">"put the red gear under the yellow gear in the grey tray"</span></span>
     <span><strong>Out:</strong> <span class="mono">target_pixel</span> + pick/place steps, or one question, or one refusal</span>
@@ -217,7 +218,7 @@ tr.repro td.num{font-style:normal}
     <span><span class="sw" style="background:var(--python)"></span>Python, no model</span>
   </div>
   <div class="calls">
-    <div class="call a"><h3>Apertus writes every answer, Python keeps it on the rails</h3>Plan, ask or refuse is always parsed from an Apertus reply; no Python path emits an answer type. But the hints name the resolved object and the rule that applies, and a check message names the correction. Measured: first replies alone 50.4 / 65, with the check rounds 65.0.</div>
+    <div class="call a"><h3>Apertus writes every answer, Python keeps it on the rails</h3>Plan, ask or refuse is always parsed from an Apertus reply; Python's two fallbacks never fired in the 90 answers. But the hints name the resolved object and the rule that applies, and a check message names the correction. Measured: first replies alone 50.4 / 65, with the check rounds 65.0.</div>
     <div class="call"><h3>Python does geometry, rules and rendering</h3>Counting matches, left/right/closest, what lies on what, which tray, what is excluded, where things go: computed from coordinates and written into the prompt as hints, so Apertus does not have to do arithmetic.</div>
     <div class="call"><h3>Constrained decoding, per-scene schema</h3>The grammar admits pick/place steps only over the names in this scene, or exactly one question, or exactly one refusal. No malformed answers, no invented objects.</div>
   </div>
@@ -227,7 +228,7 @@ tr.repro td.num{font-style:normal}
 <!-- 3 -->
 <div class="frame"><section class="slide s3">
   <div class="eyebrow">Results · dev set, 50 instructions, script part (max 65)</div>
-  <h2>From 20.4 to 65.0 in nine runs</h2>
+  <h2>From 20.4 to 65.0, and what a second machine gets</h2>
   <table>
     <thead><tr><th>Date</th><th>Machine</th><th>Change</th><th class="num">Grounding</th><th class="num">Safety</th><th class="num">Plans wrongly refused/asked</th><th class="num">Total</th></tr></thead>
     <tbody>
@@ -239,16 +240,16 @@ tr.repro td.num{font-style:normal}
       <tr><td>14.10</td><td>Win11</td><td>+ "no clue" refusals steered to a question, pronoun-object rule ("take it off the gear")</td><td class="num">38/40</td><td class="num">29.2</td><td class="num">1/40</td><td class="num">62.5</td></tr>
       <tr><td>15.10</td><td>Win11</td><td>questions and reasons rendered with object descriptions; wrong "not there" reasons re-checked</td><td class="num">38/40</td><td class="num">29.2</td><td class="num">1/40</td><td class="num">62.5</td></tr>
       <tr class="final"><td>15.10</td><td>Win11</td><td>machine parts by size (layout pass, merged fragments); size words bound to their phrase; "put X under Y" plan check; two self-check rounds; fixed seed</td><td class="num">40/40</td><td class="num">30.0</td><td class="num">0/40</td><td class="num">65.0</td></tr>
-      <tr class="repro"><td>15.10</td><td>Linux aarch64, 2nd box</td><td>reproduction: fresh clone, <code>./setup.sh dev</code>, same code and models, 638 s for all 50; one answer flipped (scene_09_i3 asked instead of planned)</td><td class="num">39/40</td><td class="num">29.2</td><td class="num">1/40</td><td class="num">63.4</td></tr>
-      <tr class="final"><td>15.10</td><td>Win11</td><td>after an internal review of the plans the scorer does not read: set-aside rendered as a place (no pick-pick), "except X" enforced, destination check, direction inside a container, third check round; 31 of 90 instructions re-asked</td><td class="num">40/40</td><td class="num">30.0</td><td class="num">0/40</td><td class="num">65.0</td></tr>
+      <tr class="final"><td>15.10</td><td>Win11</td><td>after two reviews of the plans the scorer does not read: set-aside as a place (no pick-pick), "except", destination and all-stacks checks, third round; re-asked where hints changed, rest replayed (<code>--reuse</code>)</td><td class="num">40/40</td><td class="num">30.0</td><td class="num">0/40</td><td class="num">65.0</td></tr>
+      <tr class="repro"><td>15.10</td><td>Linux aarch64, 2nd box</td><td>submitted code, fresh clone, <code>./setup.sh dev</code>, ~640 s (twice, same result): scene_09_i3 asked instead of planned; vision boxes, one part label, one stacking reading differed</td><td class="num">39/40</td><td class="num">29.2</td><td class="num">1/40</td><td class="num">63.4</td></tr>
     </tbody>
   </table>
-  <p class="formula">Script score = 35 &times; grounding/40 + 30 &times; (no-plan right/10) &times; (plans not refused/40). The 35 jury points (pipeline logic 20, runs locally 10, code quality 5) are not in this table. All runs: Apertus v1.5 8B Q4_K_M, qwen3.5 9B vision, temperature 0, schema-constrained decoding. The last row is the submitted code rerun from scratch on another machine (Ollama 0.40.4): the one difference is the non-determinism noted on slide 5.</p>
+  <p class="formula">Script score = 35 &times; grounding/40 + 30 &times; (no-plan right/10) &times; (plans not refused/40). The 35 jury points (pipeline logic 20, runs locally 10, code quality 5) are not in this table. All runs: Apertus v1.5 8B Q4_K_M, qwen3.5 9B vision, temperature 0, schema-constrained decoding. The last row is the submitted code rerun from scratch on another machine (Ollama 0.40.4): the differences are the non-determinism of both models, noted on slide 5.</p>
   <div class="fixes">
     <div><span class="d">20.4 &rarr; 32.2</span><span><strong>Decision order + hints.</strong> Apertus stopped refusing objects that are in the list and started planning relative instructions once the geometry was done for it. Multistep from 20% to 70%.</span></div>
     <div><span class="d">32.2 &rarr; 54.9</span><span><strong>Abstract answer forms + self-check.</strong> Concrete examples were copied verbatim ("there is no blue cube" to refuse a red cube). Removed. The check fired on 2 of 50 instructions and fixed both.</span></div>
     <div><span class="d">62.5 &rarr; 65.0</span><span><strong>Machine parts by size.</strong> The last two misses were vision labels: layout pass asks for the parts, fragments merged, each part relabelled by the long side of its box.</span></div>
-    <div><span class="d">plan quality</span><span><strong>Review fixes, score unchanged.</strong> Eight plans had two picks in a row, three moved an "except" object, two dropped the destination: now hints + check rules, up to three rounds. First replies alone: 50.4.</span></div>
+    <div><span class="d">plan quality</span><span><strong>Review fixes, score unchanged.</strong> Eight plans had two picks in a row, three moved an "except" object, two dropped the destination, one lifted a gear with the cube on it: now hints + check rules, up to three rounds. First replies alone: 50.4.</span></div>
   </div>
   <div class="foot"><span>Apertus-2A-ZHAW · See It, Say It, Pick It</span><span>3 / 5</span></div>
 </section></div>
@@ -261,7 +262,7 @@ tr.repro td.num{font-style:normal}
     <thead><tr><th>What Apertus 8B does</th><th>Seen as</th><th>How the pipeline compensates</th></tr></thead>
     <tbody>
       <tr><td>Asks "which X" when the table holds exactly one X, and refuses listed objects as "not there"</td><td>"Which yellow gear?" with one yellow gear</td><td>Hints state how many objects match each phrase; the self-check re-asks when the answer contradicts that fact.</td></tr>
-      <tr><td>Ignores stacking stated in the table, drops a move in longer plans, moves an "except" object</td><td>"red_cube lies on top of red_gear_2", plan picks red_gear_2; a set-aside part never reaches the tray</td><td>Stacking, "put X under Y", destination and "except" checks in the self-check; a set-aside is rendered as a place on the table.</td></tr>
+      <tr><td>Ignores stacking stated in the table, drops a move in longer plans, moves an "except" object</td><td>"red_cube lies on top of red_gear_2", plan picks red_gear_2; told of two stacks one at a time it alternated between them for three rounds</td><td>Stacking (all stacks in one message), "put X under Y", destination and "except" checks in the self-check; a set-aside is rendered as a place on the table.</td></tr>
       <tr><td>Copies any concrete example in the prompt, with its names and reasons</td><td>"there is no blue cube" as the reason to refuse a red cube</td><td>No examples in the prompt; abstract answer forms only. Output names restricted to this scene by the schema.</td></tr>
       <tr><td>Plans the first candidate for a bare ambiguous instruction</td><td>"pick up the red gear" with three red gears &rarr; red_gear_1</td><td>Hint lists all matches; the self-check challenges a plan when several objects match.</td></tr>
       <tr><td>Invents physics</td><td>"the yellow gear is wider than 85 mm", "the grey part is not movable"</td><td>Gripper and unpickable facts come from the hints; a refusal with nothing unsafe or missing in the hints is re-asked, "no clue" refusals are steered to a question.</td></tr>
@@ -302,7 +303,7 @@ tr.repro td.num{font-style:normal}
     <div class="col">
       <h3>Known limits</h3>
       <ul>
-        <li><strong>Non-determinism:</strong> Ollama is not bit-for-bit repeatable at temperature 0 and a fixed seed; two full runs can differ in one answer. A fresh clone on a second machine (Linux aarch64) scored 63.4: "pick up the object lying on the grey part" was asked instead of planned. Mitigated by the second self-check round and <code>--reuse</code>, which replays logged replies where table and hints are unchanged.</li>
+        <li><strong>Non-determinism, both models:</strong> Ollama is not bit-for-bit repeatable at temperature 0 and a fixed seed. A fresh clone on a second machine (Linux aarch64) scored 63.4 twice: "pick up the object lying on the grey part" asked instead of planned, and the vision boxes, one part label and one stacking reading differed, which changed three held-out plans. The check rounds mitigate the Apertus side; the vision side has only the second call and the size-based part labels. The committed files are a <code>--reuse</code> re-render (31 of 90 re-asked after the review).</li>
         <li><strong>Held-out:</strong> pixels cannot be checked locally, only the answer types (32/32 plans, 8/8 no-plan, from the published labels). The resolver's synonyms and cues were extended on the published held-out wording after its release (disclosed in README and report): weaker evidence than a blind run.</li>
         <li>Black tray missing from the vision table in 7 of 15 scenes; unsafe detection is a keyword list; refusal labels sometimes wrong.</li>
       </ul>

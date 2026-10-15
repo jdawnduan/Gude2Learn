@@ -12,6 +12,9 @@ dependencies = [
     "opencv-python>=5.0.0.93",
 ]
 
+[dependency-groups]
+dev = ["pytest>=8"]
+
 [project.scripts]
 see-it-say-it-pick-it = "see_it_say_it_pick_it.pipeline:main"
 
