@@ -31,6 +31,29 @@ rendering. Everything runs locally on a 5 GB GPU.
 Tested on Windows 11 (Quadro P2200 5 GB + 32 GB RAM) and macOS (M2 Pro 16 GB). Linux works the
 same way. Nothing leaves the machine: Ollama serves both models on `localhost:11434`.
 
+### The short way: one script
+
+After `git clone` and `cd` into the folder, one script does every step below. It checks that
+`uv` and `ollama` exist and prints the install commands for your platform if not; then installs
+the Python environment, runs the tests, scores the committed answers, and, on request, starts
+Ollama, pulls the two models (only when missing) and reruns the pipeline.
+
+```
+.\setup.ps1                 # Windows PowerShell: check tools, install, test, score (2 minutes)
+.\setup.ps1 -Run heldout    # ... and pull the models and rerun the held-out set
+.\setup.ps1 -Run all        # ... dev set and held-out set
+
+./setup.sh                  # macOS / Linux / Git Bash: the same
+./setup.sh heldout          # or: dev, all
+```
+
+If PowerShell refuses to run scripts: `powershell -ExecutionPolicy Bypass -File .\setup.ps1`.
+Apple Silicon: `VISION_MODEL=qwen3.5:9b-mlx ./setup.sh heldout`. A smoke test of the whole chain
+on three instructions: `.\setup.ps1 -Run heldout -Limit 3` or `LIMIT=3 ./setup.sh heldout`
+(the results file is then incomplete; rerun without the limit afterwards).
+
+The manual steps follow.
+
 ### Prerequisites and time budget
 
 | Need | Why |
