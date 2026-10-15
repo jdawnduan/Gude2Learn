@@ -25,7 +25,7 @@ under "What we disclose".
 | Results file for the dev set | `results.json`; its scorer report `report.json` |
 | `results_heldout.json` for the five held-out scenes | `results_heldout.json` (produced by the one command below) |
 | One command that runs the pipeline on any folder of scenes | `uv run python run.py --data <folder> --out <file>` (or `python run.py ...` after `pip install -r requirements.txt`); tested on a folder with other scene names and no calibration file, and on a single scene folder |
-| Optional screen recording (3 min) | not made |
+| Optional screen recording (3 min) | https://youtu.be/Ul93mJuPBsk |
 | 1–2 page report on where Apertus had difficulty | `docs/REPORT.pdf` (two pages A4; source `docs/REPORT.md`, rendered by `docs/make_report_pdf.sh`; the evidence behind it is in `attempts/`) |
 | Five slides (PDF) | `docs/slides.pdf` (source `docs/slides.html`) |
 | Earlier attempts, run log, raw traces of the final run | `attempts/` |

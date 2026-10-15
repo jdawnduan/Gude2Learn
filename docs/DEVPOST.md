@@ -84,4 +84,4 @@ Geometric tray detection (fixed camera, known tray size), containment and stacki
 instead of boxes, a parser that takes a bare array and a stack guard (the two Mac fixes), an
 out-of-distribution wording check, Apertus 70B, think mode, a stronger vision model, and a split
 of the one module into see, resolve, plan and render. Details in `docs/REPORT.md`, "Future work".
-Code: github.com/jdawnduan/Apertus-2A-ZHAW (Apache-2.0).
+Code: github.com/jdawnduan/Apertus-2A-ZHAW (Apache-2.0). Screen recording: https://youtu.be/Ul93mJuPBsk
