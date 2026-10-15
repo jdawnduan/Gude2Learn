@@ -26,7 +26,7 @@ under "What we disclose".
 | `results_heldout.json` for the five held-out scenes | `results_heldout.json` (produced by the one command below) |
 | One command that runs the pipeline on any folder of scenes | `uv run python run.py --data <folder> --out <file>` (or `python run.py ...` after `pip install -r requirements.txt`); tested on a folder with other scene names and no calibration file, and on a single scene folder |
 | Optional screen recording (3 min) | not made |
-| 1–2 page report on where Apertus had difficulty | `docs/REPORT.md` (the evidence behind it is in `attempts/`) |
+| 1–2 page report on where Apertus had difficulty | `docs/REPORT.pdf` (two pages A4; source `docs/REPORT.md`, rendered by `docs/make_report_pdf.sh`; the evidence behind it is in `attempts/`) |
 | Five slides (PDF) | `docs/slides.pdf` (source `docs/slides.html`) |
 | Earlier attempts, run log, raw traces of the final run | `attempts/` |
 
@@ -283,7 +283,7 @@ the instruction text.
 | `tests/test_pipeline.py` | checks without a model: table, resolver, answer format, self-check rules |
 | `results.json`, `results_heldout.json`, `report.json` | our answers and the scorer report |
 | `attempts/` | run log, earlier scorer reports, raw traces of the final run |
-| `docs/REPORT.md`, `docs/slides.pdf`, `docs/DEVPOST.md` | report, slides, the Devpost submission text |
+| `docs/REPORT.md` + `docs/REPORT.pdf`, `docs/slides.pdf`, `docs/DEVPOST.md` | report (markdown and the two-page PDF), slides, the Devpost submission text |
 | `dataset/`, `heldout/` | the organisers' scenes: photos, instructions, calibration, ground truth (CC BY 4.0) |
 | `starter/evaluate.py`, `starter/scene_io.py` | the official scorer; scene loading and pixel-to-robot transform |
 | `schema/result.schema.json`, `EVALUATION.md`, `docs/DATA.md`, `docs/safety_primer.md` | the organisers' answer format, scoring, data and safety notes |
