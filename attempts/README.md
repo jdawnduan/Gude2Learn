@@ -11,6 +11,7 @@ What is in this folder:
 | `2026-10-15_linux_box_10f78ac.report.json`, `2026-10-15_linux_box_7ee7b05.report.json` | scorer reports of two reruns on a Linux aarch64 box (review-fix code and second-pass code), 63.4/65 each, identical answers (see the nondeterminism note) |
 | `2026-10-15_win11_fresh_922f1a1.report.json` | a second full run on the Windows box with no cache (vision and Apertus from scratch), 63.4/65: same flipped answer as the Linux box, same cause |
 | `2026-10-15_win11_fresh_part_fallback.report.json` | the same fresh Windows tables re-rendered after the part-reference fallback, 65.0/65 |
+| `2026-10-15_linux_box_final.report.json` | fresh run of the final code on the Linux box, 65.0/65, every category 100%; 48 of 50 dev plans identical to the committed ones (scene_06_i2 has an extra set-aside, scene_09_i4 names the merged part "white_part"), 38 of 50 pixels identical |
 | `2026-10-15_ablation_no_hints.report.json`, `2026-10-15_ablation_no_check.report.json` | ablations of the final prompt on the dev set (committed vision tables): `--no-hints` 48.8/65 (relative 71%, ambiguous 0%), `--no-check` 50.4/65 (= the first replies) |
 | `../report.json` | scorer report of the final dev-set run, 65.0/65 |
 | `../results.json`, `../results_heldout.json` | the submitted answers |
