@@ -946,17 +946,13 @@
           "action": "pick",
           "object": "yellow_gear",
           "pixel": [
-            1917,
-            1395
+            1541,
+            931
           ]
         },
         {
           "action": "place",
-          "object": "grey_tray",
-          "pixel": [
-            1179,
-            963
-          ]
+          "object": "table"
         },
         {
           "action": "pick",
@@ -1082,6 +1078,10 @@
             1520,
             232
           ]
+        },
+        {
+          "action": "place",
+          "object": "table"
         },
         {
           "action": "pick",
