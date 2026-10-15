@@ -1,228 +1,217 @@
 # Pre-submission sanity check
 
 Team Apertus-2A-ZHAW, "See It, Say It, Pick It", Hack Apertus 2026.
-Second pass, written 2026-10-15 against commit `10f78ac` ("Review fixes"), which is pushed and equals
-`origin/main`. Deadline: 2026-10-16 12:00 CEST.
+Third pass, written 2026-10-15 against commit `922f1a1` ("Second review pass"), which is pushed and
+equals `origin/main`. Deadline: 2026-10-16 12:00 CEST.
 
 Two fresh, independent read-only reviews were run on this commit (integrity, rules and deliverables;
-jury view on pipeline logic and code quality) and their findings were re-verified by hand where it
-matters. A first pass on commit `d5c7608` is summarised in section 1 so the status of each earlier
-finding is visible. Line numbers refer to `src/see_it_say_it_pick_it/pipeline.py` at `10f78ac` unless
-another file is named.
+jury view on pipeline logic and code quality) and every finding that matters was re-verified by hand.
+Earlier passes ran on `d5c7608` and `10f78ac`; section 1 shows the status of each earlier finding.
+Line numbers refer to `src/see_it_say_it_pick_it/pipeline.py` at `922f1a1` unless another file is named.
 
 ## Verdict in one paragraph
 
-**No cheating found, and the submission is in a materially better state than yesterday.** The code
-never reads the ground truth or the category labels, every organiser file is byte-identical to upstream,
-all 90 committed answers re-derive exactly from the raw Apertus traces and the recomputed vision tables,
-the only network call is to local Ollama, and the dev-set score re-scores at 65.0 / 65. The three
-systematic plan errors from the first pass (two picks in a row, "except" ignored, destinations dropped)
-are gone, and the held-out tuning, the first-reply score and the weight provenance are now disclosed.
-**Three things still need fixing before you submit, all documentation:** the run log and the report say a
-third check round fixed held_04_i4, but the committed plan still picks a gear with the cube on it; the
-README intro and slide 1 still say Apertus "makes every decision", which the repository's own disclosure
-contradicts; and the second-machine reproduction is presented as a run of the submitted code although it
-ran before the review fixes. Expected jury view today: pipeline logic about 15 / 20, code quality about
-4 / 5.
+**No cheating found. The submission is ready apart from two documentation corrections.** The code never
+reads the ground truth or the category labels, every organiser file is byte-identical to upstream, all
+90 answers re-derive exactly from the raw Apertus traces (including every check round and every action
+pixel), the only network call is to local Ollama, the dev set re-scores at 65.0 / 65, and both test
+runners pass. All six items from the second pass that could be fixed in the code or the docs are fixed:
+held_04_i4 is now physically right after one check round, the "makes every decision" overclaim is
+gone, the `--reuse` provenance and the three changed held-out pixels are disclosed. **Two things remain:**
+four places call the Linux box run "the submitted code" although it ran on the previous commit; and the
+new "place table" set-aside pixel is described as a bare-table spot but lands on the image's bottom
+border band in 8 of 15 scenes and, in held_05, most likely inside the black tray that vision did not
+detect. Expected jury view today: pipeline logic about 16 / 20, code quality about 4 / 5.
 
-## What was verified directly on `10f78ac`
+## What was verified directly on `922f1a1`
 
 | Check | Result |
 |---|---|
 | `uv run python tests/test_pipeline.py` | prints `ok` |
+| `uv run pytest -q tests` | 1 passed |
 | `uv run python starter/evaluate.py results.json --data dataset` | `SCRIPT TOTAL 65.0 / 65`, 40 of 40, 10 of 10, 0 of 40 refused by mistake |
-| Plan structure script over all 72 plans | 0 plans with two picks in a row, 0 dangling picks (was 8 and 3) |
-| `git diff upstream/main` on organiser files | empty: scorer, schema, dataset, ground truth, held-out scenes untouched |
+| `report.json` | identical to a fresh `--report` regeneration |
+| Plan structure script, 72 plans | 0 consecutive picks, 0 dangling picks; step-by-step simulation against each scene table: nothing is ever picked while something still lies on it |
+| held_04_i4 | yellow_gear aside, red_cube aside, then both red gears to the grey tray; matches the two stacks in the scene table; one check round |
+| Overclaim strings | "makes every decision", "one decision maker", "third round fixed held_04_i4", "no Python path" no longer occur in README, report, run log or slides |
+| `git diff upstream/main` on organiser files | empty |
 | Commits touching `dataset/` or `heldout/` | only the organisers' commits and the upstream import |
-| Schema validity, both results files | all 90 valid; `place` with object `table` is allowed (schema only requires a non-empty string) |
-| Instruction coverage | 50 dev ids, 40 held-out ids, no duplicates |
-| Answers vs traces | every answer re-derived from the last Apertus reply plus cached pixels: 0 mismatches in 90; scene tables and refined pixels recomputed from the raw vision replies and photos: identical |
+| Schema validity, 90 answers | 0 errors; every action pixel inside 2448 x 2048 |
+| Answers vs traces | last reply of every trace re-rendered with the pipeline's own functions: 0 mismatches in 90, pixels included; hints and tables re-derived: identical; every logged check-round issue equals the check function's output on the preceding answer |
+| First-reply score, dev | 50.4 / 65, matches the claim |
+| Self-check counts | dev 8 of 50 fired, 2 needed a second round; held-out 11 of 40, 3 a second, 1 a third; match the docs |
+| Re-ask provenance | vs `d5c7608`: 31 of 90 re-asked, as claimed; `922f1a1` re-asked 2 more rounds (held_04_i4, held_05_i8) |
 | Root `results*.raw.jsonl` / `*.scenes.json` | SHA256-identical to the `attempts/` copies |
-| First-reply score (dev, no self-check) | 50.4 / 65, matches the README and report claim |
 | `git status -sb` on main | clean, equal to `origin/main` |
 
-## 1. Status of the first-pass findings
+## 1. Status of earlier findings
 
-| # | Finding on `d5c7608` | Status on `10f78ac` |
+| # | Finding | Status on `922f1a1` |
 |---|---|---|
-| P1 | two commits unpushed | fixed, main equals origin |
-| P2 | resolver and prompt tuned on held-out wording after the 14 Oct release; literal held-out sentences in comments and a test | disclosed in README, report, run log and slide 5; the comment at the old line 538 and 646 and the test sentence were replaced. But the fix commit added new literals: `tests/test_pipeline.py:163` tests the exact sentence of held_02_i3, and the comment at line 604 quotes held_02_i4. See 2.3 |
-| P3 | slide 2 and README step 4 overclaimed Apertus's role | README step 4, the disclosure section, the report and slide 2 are now accurate and give the 50.4 figure. README lines 6-7 and slide 1 (line 167) still say "makes every decision"; slide 2 heading still says "one decision maker" |
-| P4 | weight provenance undisclosed | fixed in README step 3, report, slide 2 |
-| P5 | hygiene (pyproject, LICENSE, .gitignore, flags, requirements, timing) | fixed |
-| J1 | 8 plans with two picks in a row | fixed: a set-aside before another pick is rendered as `place table` (lines 877-886); 6 plans carry it |
-| J2 | "except X" not enforced | fixed: hint (710-715, 727-729) plus check rule (813-816); the three affected plans no longer pick X |
-| J3 | five wrong held-out plans | four fixed (held_02_i3, held_02_i4, held_03_i2, held_05_i8). **held_04_i4 still wrong**, see 3.1 |
-| J4 | black tray missing in 7 of 15 scene tables | unchanged, disclosed |
-| J5 | unsafe and contradiction detection are keyword lists | unchanged, disclosed |
-| J6 | wrong rule labels in refusals, unpickable choices in one question | unchanged (held_03_i8, scene_09_i5, scene_05_i5), disclosed |
-| J7 | banana pixel 3 px from the mask edge | fixed: concave-blob rule in `refine_pixel` (436-444), now 70 px from the edge; no dev pixel is within 36 px of an edge |
-| J8 | code-quality items | mostly fixed: shared `_inter`/`_overlap`, thresholds commented, HTTP and timeout errors handled, cache keyed on vision model and size, results written after every instruction, pyproject and LICENSE filled. Still open: 1020-line module, `resolve` 221 lines, tests not pytest-compatible |
+| A | held_04_i4 lifted a gear with the cube on it; docs claimed it fixed | **fixed**: the stacking check names every unmoved top in one message (817-827), test at `tests/test_pipeline.py:115-127`; run log sentence now true |
+| B | "makes every decision" in README intro, slide 1, slide 2 heading | **fixed**: now "writes every answer" |
+| C | Linux reproduction predated the review fixes | **partly**: a second box run on `10f78ac` was recorded (`attempts/2026-10-15_linux_box_10f78ac.report.json`, 63.375, same flip scene_09_i3). But README line 136, report line 88, run-log table line 11 and slide 3 line 244 call it "the submitted code"; the submitted code is `922f1a1`, which changed the stacking message, added the set-aside pixel and bumped the cache version after that run |
+| D | state that results are a `--reuse` re-render | **fixed** (README 224-228, report, run log, slide 5) |
+| E | "no Python path emits an answer type" | **fixed**: both fallbacks named and verified never to have fired |
+| F | verbatim held-out sentences in tests, comments, run log, slides | **partly**: the test and one comment were paraphrased; comments at lines 602 and 627 still say "at the top of the grey tray", the run log line 29 and slide 3 line 240 still quote "take it off the gear" as a rule name, run log lines 33 and 94 and report line 62 quote other held-out sentences; README 220-221 says "the test file and one comment", which undercounts |
+| G | name the three changed held-out pixels | **fixed and verified**: exactly held_02_i3, held_02_i4, held_04_i4 changed vs `d5c7608`, none since |
+| H | README example for scene_06_i4 stale | **fixed**, matches `results.json` |
+| I | report length | **partly**: about 1630 words, still roughly three pages |
+| J-b | black tray missing from 7 of 15 scene tables | unchanged, disclosed; photo sampling shows the tray is present in every photo |
+| J-c | containment by box centre (banana "in plate" held_02, grey part "in plate" held_05) | unchanged, disclosed |
+| J-d | held_05_i8 redundant set-aside | unchanged: the check demands "place none" even when the top object itself goes to the destination (825-827) |
+| J-e | wrong rule labels (held_03_i8, scene_09_i5), unpickable choices (scene_05_i5), garbled wording (scene_07_i5, held_04_i5) | unchanged, disclosed |
+| J-f | `place table` step had no pixel | **fixed with a new problem**, see 3.1 |
+| J-h | code-quality items | partly: pytest-compatible tests, exact-tag model match in setup scripts, README example fixed; module now 1041 lines, `resolve` still 221 lines, bare JSON errors on a corrupt cache, `--reuse` still blind to prompt edits |
 
 ## 2. Integrity
 
-### 2.1 Ground truth and labels: clean
+### 2.1 Ground truth, labels, hard-coding: clean, disclosed where it matters
 
-Instructions are loaded by the organisers' `starter/scene_io.py`, which splits `category<TAB>text`;
-the pipeline keeps only the text at line 914 and nothing else runs before that. No team file references
-`ground_truth`, `instructions.csv`, the masks, scene ids, instruction ids or literal pixels. The scorer
-is imported only for its schema checker. The scene tables and every target pixel were recomputed from
-the raw vision replies and the photos and match the cached values exactly, so pixels are code-derived.
+The category column is discarded at line 934 before anything else runs; the prompt (63-103) receives
+only table, hints and instruction text. No team file references the ground truth, the masks, the CSV,
+scene ids, instruction ids or literal pixels. No lookup keyed on sentences. The new commit added no
+held-out-specific rule: the direction-refines-container change (699) altered no committed hint, and the
+other two changes are the stacking message and the set-aside pixel. The held-out-driven rules from 14
+and 15 October are generic in form and disclosed in README "What we disclose" and the report.
 
-### 2.2 Committed answers come from the code: clean, with one thing to state
+### 2.2 Committed answers come from the code: clean
 
-Every answer in both results files re-derives from the last Apertus reply in the trace of the same
-instruction. Every change between `d5c7608` and `10f78ac` (12 dev, 8 held-out) maps to a hunk in the
-`pipeline.py` diff of the same commit; none looks hand-made. Results files have never been changed in a
-commit that did not also change the pipeline and tests.
+Every answer re-derives from the last reply of its trace. All changes between `10f78ac` and `922f1a1`
+are the set-aside pixel on five plans and the held_04_i4 plan, both explained by the code diff. No commit
+has ever changed a results file without also changing the pipeline. Only the organisers' re-run can
+show the traces came from the model, and the README invites it.
 
-The final files are a `--reuse` re-render, not one fresh end-to-end run: 59 of 90 first replies are
-byte-identical to the previous traces and 31 instructions were re-asked, exactly as the run log says.
-The prompt header (lines 1-101) is unchanged, so the reused replies are valid. The organisers' re-run
-will be fresh and may differ by the disclosed one-answer nondeterminism; say explicitly in the README
-that the committed held-out file was re-rendered with `--reuse`.
+### 2.3 How much Apertus decides: stated honestly
 
-### 2.3 Hard-coding and held-out tuning: disclosed, keep it that way
+First replies alone score 50.4 / 65 on the dev set; on the held-out set 35 of 40 first replies already
+had the right answer type (not claimed anywhere; it would be a fair number to add). The hints name the
+resolved object and the rule, and the check messages name the correction; README step 4, the disclosure
+section, the report and slide 2 say so. Python never overrides the final reply; the two fallbacks never
+fired.
 
-No per-scene or per-instruction constants and no lookup from sentence to answer. The disclosure in
-README "What we disclose", `docs/REPORT.md` and slide 5 is accurate: synonym and spatial-cue rules were
-extended on the published held-out wording with the labels visible, and the 32/32, 8/8 figures come
-from the labels. Three held-out target pixels (held_02_i3, held_02_i4, held_04_i4) changed as a result
-of rules written on 15 October with the held-out text and photos in view; the disclosure should name
-that consequence. The fix commit also reintroduced two verbatim held-out sentences,
-`tests/test_pipeline.py:163` and the comment at line 604, and the run log and slide 3 still quote "take
-it off the gear" as a rule name. Either remove them or add one sentence that held-out sentences appear
-in comments and tests.
+### 2.4 Models, APIs, rules: clean
 
-Legitimate domain knowledge, fine to keep: object vocabulary and unpickables (40-46), gripper rules in
-the prompt (82-83), part sizes for a fixed camera (299-301), colour priors (490-494), the unsafe verb
-list from the safety primer (495-496), cube-never-under-gear prior (266-269), reading-order numbering.
+Apertus community GGUF and `qwen3.5:9b` through Ollama at localhost (918-921), one endpoint, no keys;
+only pytest and its dependencies were added to the lockfile. Pixel convention, one-action ask/refuse,
+local-only, and label-free held-out answers all hold.
 
-### 2.4 How much Apertus decides: now stated honestly, two leftovers
+## 3. Jury view: pipeline logic (estimated 16 / 20)
 
-Apertus writes every JSON answer; the last reply stands after at most three rounds and Python never
-overrides the answer type. On 71 of 90 instructions the first reply already matched the hints; on 19
-it was re-asked with messages that name the required action, sometimes the whole plan ("the plan must
-start with pick X", "exactly three moves, in this order"). First replies alone score 50.4 / 65 on the dev
-set; the check rounds add the rest. README step 4, the disclosure section, the report and slide 2 say
-this. Two leftovers contradict it: README lines 6-7 and slide 1 line 167 ("makes every decision"),
-slide 2 heading ("one decision maker"). Also "no Python path emits an answer type" (README 204, report
-106, slide 2) is not literally true: line 891 returns a fallback question for an unparseable plan and
-lines 874-875 drop picks of unlisted objects. Neither fired in the 90 committed answers; say "never
-fired" rather than "no path".
+Good: every committed plan executes in order against its scene table, including the two-stack case;
+every dev target pixel is at least 36 px inside its mask; the ten dev multi-step plans match the
+organisers' reference plans; questions name the choices with positions; all 15 scene tables stay in
+vocabulary with plausible counts and box sizes.
 
-### 2.5 Models and APIs: clean
+### 3.1 The set-aside pixel (new)
 
-Apertus `hf.co/Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF` and `qwen3.5:9b` via Ollama at localhost
-(898-900); one endpoint, temperature 0, seed 0; no keys, no other hosts. Provenance disclosed.
-
-## 3. Jury view: pipeline logic (estimated 15 / 20)
-
-Good: all 15 scene tables use only the vocabulary with plausible counts and box sizes; stacking is right
-in 5 of 6 stacked scenes; 71 of 72 plans are executable in order including every set-aside; the dev
-multi-step plans match the organisers' reference plans; questions name the choices with positions.
-
-### 3.1 held_04_i4 is still physically impossible and the docs say it was fixed
-
-Committed plan: pick yellow_gear, place table, pick red_gear_2, place grey_tray, pick red_gear_1, place
-grey_tray. The scene table for held_04 says red_cube lies on red_gear_1, so the last pick lifts a gear
-with the cube on it. The trace shows three rounds oscillating: round 1 "yellow_gear lies on red_gear_2,
-start with pick yellow_gear", round 2 "red_cube lies on red_gear_1, start with pick red_cube" (reply
-drops the yellow gear), round 3 repeats round 1. Cause: `check` reports only the first stack violation
-and words it as "must start with" (817-822, the `break`), so two stacks give contradictory corrections.
-`attempts/README.md:68` ("A third check round fixed held_04_i4") and `docs/REPORT.md:67` ("a destination
-check and a third round fixed both") are wrong. A jury that reads the plan will find this.
+`aside_pixel` (861-873) picks one point per scene, the grid point farthest from every detected box and
+the image border. In 8 of 15 scenes that is [104, 1936], the bottom-left corner: 104 px is about 25 mm
+at the calibration's 0.24 mm per pixel, while a gear is about 85 mm wide, so a set-aside object there
+overlaps the grey tray's box and the image edge. Pixel statistics show that row lies in a distinct dark
+band about 190 px high along the bottom of every photo, not on the table surface. In held_04_i4 both
+set-asides use the same pixel, so the cube would be stacked on the yellow gear. In held_05 the point
+[1528, 232] sits in a large dark region at the top right where the black tray lies, and held_05 is one
+of the scenes whose table lacks the black tray, so the set-aside most likely lands inside the undetected
+tray. The reviewers could not view the images; look at `heldout/held_05/rgb.png` at (1528, 232) and
+`dataset/scene_01/rgb.png` at (104, 1936) before deciding. The README wording "bare-table spot farthest
+from every box" (190-191) is not what the code guarantees.
 
 ### 3.2 Other findings
 
-- Black tray missing from the vision table in 7 of 15 scenes; "from the black tray" then filters
-  nothing (scene_05_i4 is right by coincidence). Disclosed.
-- Containment is a box-centre test: banana "in plate" (held_02) and grey_part "in plate" (held_05) are
-  doubtful and can add a needless move (held_05_i4).
-- held_05_i8 has a redundant set-aside of the grey part before moving it to the tray, because the
-  destination check says "add that move" and Apertus added rather than replaced.
-- Refusal labels wrong in held_03_i8 ("NOT THERE" for impossible, repeated identically through three
-  rounds) and scene_09_i5 ("unsafe" for a contradiction); scene_05_i5 offers the plate, saucer and tray
-  as things to give; held_04_i5 repeats the gear description twice; scene_07_i5 wording is garbled.
-- The `place table` step carries no pixel while every other step does.
-- Unsafe, contradiction and "inside a solid object" rules are regex lists. Disclosed.
-- Duplicate numbering is top-row first, so pipeline names differ from the reference names in the
-  scene_06 and scene_09 reports (harmless, the scorer uses pixels).
+- held_05_i8 sets the grey part aside and then moves it to the tray; one move too many.
+- The stacking message handles any number of independent stacks in one round, but a chained stack (A
+  on B on C) needs two rounds and the first message is itself wrong (only supports of picked objects are
+  inspected, 819-827). No such scene exists in either set.
+- Black tray present in every photo but absent from 7 of 15 tables; "from the black tray" then filters
+  nothing. Containment by box centre gives doubtful "in plate" readings in held_02 and held_05.
+- Wrong rule labels in held_03_i8 and scene_09_i5; scene_05_i5 offers unpickables; scene_07_i5 and
+  held_04_i5 wording garbled. All replayed by `--reuse`, all disclosed.
+- Unsafe and contradiction detection are regex lists. Disclosed.
 
 ## 4. Jury view: code quality (estimated 4 / 5)
 
-Good: six-stage design with an explanatory docstring; every answer auditable through traces and a
-versioned, model-keyed cache; accurate README with all flags; honest run log; tests run without a model;
-`uv.lock`; Apache-2.0 with a real copyright line; setup scripts that fail loudly and pull models only
-when missing; actionable Ollama error messages.
+Good: six-stage design with an explanatory docstring; every answer auditable through the traces and a
+cache keyed on model, size and version; all 13 flags documented; honest run log; both test runners pass;
+`uv.lock` with a dev group; Apache-2.0 with a real copyright line; scorer reproduces in seconds.
 
-Costing the point: one 1020-line module, `resolve` 221 lines (520-740) with `m2` rebound five times,
-`check` 101 lines, `main` 123 lines; `PARTS` and `ASIDE` used before definition; a few unexplained
-thresholds remain (678, 687, 599); a corrupt cache or trace file raises a bare JSON error (916, 955);
-`--reuse` keys on table and hints only, so a prompt edit would silently replay stale replies; tests are
-not pytest-compatible (`test_resolve(objs)` takes a positional parameter); `README.md:231-233` shows an
-example answer for scene_06_i4 that is not the committed one; the setup scripts' model-presence test
-matches on the bare tag so `qwen3.5:4b` present would skip pulling the 9b.
+Costing the point:
+- One 1041-line module; `resolve` 221 lines (520-740) with `m2` rebound five times; `check` 106 lines;
+  `main` 124 lines; `PARTS` and `ASIDE` used before definition; area expression repeated eight times.
+- Unexplained thresholds remain at 599, 678-679, 687, 172.
+- A corrupt `.scenes.json` or `.raw.jsonl` raises a bare JSON traceback (936, 975); `aside_pixel` has
+  no box clipping and its centre fallback can land inside a box (866-869).
+- `--reuse` keys on table and hints only (985), so a prompt-header edit would replay stale replies, and
+  it reads the git-ignored root trace file; the README does not say to copy the `attempts/` files back.
+- `setup.sh` lines 15, 76, 81: an empty array expanded under `set -u` is "unbound variable" in bash
+  below 4.4, so `./setup.sh dev` dies on stock macOS bash 3.2 unless `LIMIT` is set.
+- `setup.ps1` line 46: `ollama --version` with stderr redirected under a stop-on-error preference is a
+  terminating error in Windows PowerShell 5.1 when Ollama is installed but not running, so the no-model
+  path fails on exactly the machine the script is meant to help.
+- One monolithic pytest test; `refine_pixel`, the schema builder, the cache and the round loop are
+  untested.
 
 ## 5. Deliverables
 
 | Deliverable | Status |
 |---|---|
-| Public Apache-2.0 repository | pushed, `origin/main` = `10f78ac` |
-| `results.json` + `report.json` | present, 65.0 / 65 |
+| Public Apache-2.0 repository | pushed, `origin/main` = `922f1a1` |
+| `results.json` + `report.json` | present, 65.0 / 65, report identical to a fresh regeneration |
 | `results_heldout.json` | 40 answers, valid, traceable |
-| One command | `uv run python run.py --data <folder> --out <file>`, plus `setup.ps1` / `setup.sh` |
-| 1-2 page report | `docs/REPORT.md`, about 1850 words, probably 3-4 pages; trim or accept |
-| Five slides PDF | `docs/slides.pdf`, 5 pages, regenerated 4 s after the HTML in the same commit |
-| Run log and traces | `attempts/` |
+| One command | `uv run python run.py --data <folder> --out <file>`, plus the setup scripts (see 4 for two platform bugs) |
+| 1-2 page report | `docs/REPORT.md`, about 1630 words, roughly three pages |
+| Five slides PDF | 5 pages, generated 14 s after the HTML in the same commit |
+| Run log, traces, box report | `attempts/` |
 | Devpost entry | cannot be checked from here |
 
 ## 6. Action list
 
-### Must do before submitting (documentation only, no model time needed)
+### Must do before submitting
 
-1. **Correct the held_04_i4 claim** in `attempts/README.md:68` and `docs/REPORT.md:67`: it is still
-   wrong (cube left on red_gear_1) because the stacking check reports one stack at a time. Or fix it:
-   drop the `break` at 822 and list every unmoved top in one message, re-ask that instruction with
-   `--reuse`, regenerate the results and traces together, re-score.
-2. **Soften "makes every decision"** in README lines 6-7 and slide 1 (`docs/slides.html:167`), and
-   "one decision maker" (slide 2 heading), to match the disclosure; regenerate `slides.pdf`.
-3. **Date the second-machine run**: the 63.4 Linux reproduction ran on the pre-review-fix code. Say so
-   in README (lines 132-135), the report (91-93), the run log line 31, and the slide 3 footnote (line
-   246), or rerun `./setup.sh dev` on that machine with `10f78ac`.
+1. **Stop calling the box run "the submitted code"** in README line 136, report line 88, run-log table
+   line 11 and slide 3 line 244, then regenerate `slides.pdf`. Say it ran on `10f78ac`, one commit
+   before the submission, and that the last commit changed only the stacking message and the set-aside
+   pixel. Or rerun `./setup.sh dev` on the box at `922f1a1` and commit that report.
+2. **Decide on the set-aside pixel** after looking at the two photo spots named in 3.1. Either remove
+   the pixel from the `place table` step (the schema allows a place without a pixel) or change the
+   README wording to what the code does, and in both cases give the second set-aside in one plan a
+   different spot. Re-render with `--reuse`; no model calls needed for the pixel.
 
 ### Should do
 
-4. State in the README that the committed held-out file is a `--reuse` re-render (31 of 90 re-asked).
-5. Replace "no Python path emits an answer type" with "the fallback paths never fired in the 90
-   committed answers" (README 204, report 106, slide 2).
-6. Remove the new verbatim held-out sentences (`tests/test_pipeline.py:163`, comment at line 604) and
-   the "take it off the gear" rule name in the run log and slide 3, or extend the disclosure.
-7. Add to the disclosure that three held-out target pixels changed as a result of the 15 Oct rules.
-8. Fix the README example answer for scene_06_i4 (lines 231-233) to the committed one.
-9. Label fixes at render time: when the hints say "(rule 3)" and the reason starts with "NOT THERE" or
-   "unsafe", prefix the right label; exclude unpickables from "no clue" question choices (check line
-   756). Both need no model call for the label part.
+3. Fix the two setup-script bugs: `setup.sh` use `${LIMIT_ARGS[@]+"${LIMIT_ARGS[@]}"}`; `setup.ps1`
+   wrap `ollama --version` in try/catch or drop the stderr redirect. Ten minutes, no model.
+4. Paraphrase the remaining verbatim held-out sentences (comments 602 and 627, run log 29, 33, 94,
+   report 62, slide 3 line 240) and correct README 220-221 to "the prompt synonyms, two comments and
+   the run log".
+5. Let the stacking check accept a top object that goes straight to the destination first, then
+   re-ask held_05_i8 (one call), or list it under known weaknesses.
+6. In the nondeterminism note, say the box's scene_06_i2 plan also differed (extra set-aside) and one
+   banana pixel moved about 230 px, instead of "same plan with a slightly different pixel" for all 12.
+7. Add the `922f1a1` re-ask count (2 of 90) next to "31 of 90" and the held-out first-reply figure
+   (35 of 40 right types) next to the dev 50.4.
+8. Catch the JSON error on a corrupt cache or trace file and name the file; store a hash of the prompt
+   header in each raw record so `--reuse` can detect prompt edits.
 
 ### Nice to have
 
-10. Make the tests pytest-compatible and add pytest to dev dependencies.
-11. Give the `place table` step a pixel; note in README step 6 that it mirrors the reference plans'
-    "place aside".
-12. Slide 3 heading says "nine runs" over a ten-row table.
-13. Add the Linux run's scorer output to `attempts/` so the 63.4 claim has an artifact.
-14. Trim `docs/REPORT.md` toward two pages.
+9. Trim the report toward two pages; the run-log table and the nondeterminism paragraph duplicate the
+   README and run log.
+10. Align the held-out wording list in report line 100 with README line 206.
+11. Add a commit field to future scorer-report files.
+12. `pyproject.toml` publishes a personal work e-mail in a public repository; the author's choice.
 
 Any change to results must come from regenerating the files with the code and refreshing the
 `attempts/` traces in the same commit, never from editing a results file by hand.
 
 ## 7. Weaknesses to disclose
 
-Already disclosed: resolver tuned on held-out wording; first replies 50.4 / 65 and the check messages
-that name the correction; black tray missing in half the scenes; keyword-based unsafe detection; wrong
-rule labels; nondeterminism and the 63.4 reproduction; weight provenance.
+Already disclosed: resolver tuned on held-out wording; 50.4 first replies and the check messages that
+name the correction; `--reuse` re-render; three changed held-out pixels; black tray missing in half
+the scenes; keyword-based unsafe detection; wrong rule labels; nondeterminism; weight provenance; the
+two Python fallbacks.
 
-Not yet disclosed: held_04_i4 is physically impossible as committed and the self-check oscillates when
-two objects are stacked on two targets; the committed results are a `--reuse` re-render; three
-held-out target pixels changed under the 15 Oct rules; containment by box centre can add a needless
-move; Python inserts `place table` and would emit a fallback question on an unparseable plan.
+Not yet disclosed: the set-aside pixel is a per-scene constant on the image border in 8 of 15 scenes
+and probably inside the undetected black tray in held_05, and held_04_i4 uses it twice; held_05_i8's
+redundant move; chained stacks need two rounds; the two setup-script platform bugs; the box run was
+on the previous commit.
