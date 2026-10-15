@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "starter"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))   # also without `uv sync` (plain python)
 from evaluate import answer_type  # noqa: E402
 
 from see_it_say_it_pick_it.pipeline import FALLBACK_QUESTION, aside_pixel, check, humanize, resolve, scene_table, to_answer  # noqa: E402

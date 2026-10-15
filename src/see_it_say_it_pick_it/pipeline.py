@@ -913,6 +913,28 @@ def to_answer(reply: str, objs: list[dict], iid: str, aside: list[int] | None = 
     return {"instruction_id": iid, "target_pixel": None, "actions": [{"action": "ask_user", "question": FALLBACK_QUESTION}]}
 
 
+def load_scene_any(d: Path):
+    """The organisers' loader when the folder has a calibration.json (its own or its parent's); otherwise just the
+    photo and the instructions, which is all this pipeline needs. So any folder of scenes works, calibrated or not."""
+    try:
+        return load_scene(d)
+    except FileNotFoundError:
+        from scene_io import Scene, _instructions   # noqa: E402  the organisers' module, already on sys.path
+        rgb = cv2.cvtColor(cv2.imread(str(d / "rgb.png"), cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
+        return Scene(name=d.name, rgb=rgb, depth_mm=None, xyz=None, K=np.eye(3), base_T_camera=None,
+                     gripper_max_opening_mm=None, instructions=_instructions(d / "instructions.txt", d.name))
+
+
+def find_scenes(data: Path) -> list[Path]:
+    """Scene folders under `data`: every subfolder with an rgb.png; `data` itself if it is a single scene."""
+    if (data / "rgb.png").exists():
+        return [data]
+    scenes = sorted(p for p in data.iterdir() if p.is_dir() and (p / "rgb.png").exists())
+    if not scenes:
+        sys.exit(f"no scenes in {data}: expected subfolders with rgb.png and instructions.txt (like dataset/scene_01)")
+    return scenes
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--data", type=Path, default=Path("dataset"), help="folder of scene_NN/ with rgb.png + instructions.txt")
@@ -932,8 +954,8 @@ def main():
                     help="reuse Apertus replies from <out>.raw.jsonl where table and hints are unchanged (fast re-render)")
     args = ap.parse_args()
 
-    scenes = sorted(p for p in args.data.iterdir() if p.is_dir() and (p / "rgb.png").exists())
-    jobs = [(d, iid, text) for d in scenes for iid, _, text in load_scene(d).instructions][: args.limit or None]
+    scenes = find_scenes(args.data)
+    jobs = [(d, iid, text) for d in scenes for iid, _, text in load_scene_any(d).instructions][: args.limit or None]
     cache_path = args.out.with_suffix(".scenes.json")
     cache = json.loads(cache_path.read_text()) if cache_path.exists() else {}
     vision_key = [args.vision_model, args.max_side]
@@ -944,7 +966,7 @@ def main():
         for d in dict.fromkeys(d for d, _, _ in jobs):
             if d.name in cache and cache[d.name].get("version") == CACHE_VERSION:
                 continue
-            sc = load_scene(d)
+            sc = load_scene_any(d)
             w, h = sc.size
             b64 = None
             if d.name in cache:

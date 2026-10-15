@@ -23,7 +23,8 @@ under "What we disclose".
 | Public Apache-2.0 repository, reproducible | this repository, `LICENSE`; the committed answers re-score in 2 minutes, a full rerun takes about 45 minutes plus the model download (see the time budget below) |
 | Results file for the dev set | `results.json`; its scorer report `report.json` |
 | `results_heldout.json` for the five held-out scenes | `results_heldout.json` (produced by the one command below) |
-| One command that runs the pipeline on any folder of scenes | `uv run python run.py --data <folder> --out <file>` |
+| One command that runs the pipeline on any folder of scenes | `uv run python run.py --data <folder> --out <file>` (or `python run.py ...` after `pip install -r requirements.txt`); tested on a folder with other scene names and no calibration file, and on a single scene folder |
+| Optional screen recording (3 min) | not made |
 | 1–2 page report on where Apertus had difficulty | `docs/REPORT.md` (the evidence behind it is in `attempts/`) |
 | Five slides (PDF) | `docs/slides.pdf` (source `docs/slides.html`) |
 | Earlier attempts, run log, raw traces of the final run | `attempts/` |
@@ -97,6 +98,10 @@ uv run python starter/evaluate.py results.json --data dataset
 The last command scores the committed dev-set answers with the official scorer and must print
 `SCRIPT TOTAL 65.0 / 65`. It needs no GPU and no model.
 
+Without uv, the organisers' way works too: `pip install -r requirements.txt` on Python 3.11 or
+newer, then `python tests/test_pipeline.py` and `python run.py ...` (tested with 3.11; `run.py`
+and the tests put `src/` on the path themselves).
+
 ### 3. Models (one-time download, 12 GB)
 
 ```
@@ -124,6 +129,12 @@ uv run python run.py --data dataset --out results.json              # ~25 min on
 uv run python starter/evaluate.py results.json --data dataset --report report.json
 uv run python run.py --data heldout --out results_heldout.json      # ~20 min: 5 scenes, 40 instructions
 ```
+
+`--data` takes any folder of scenes: every subfolder with an `rgb.png` and an `instructions.txt`
+(one instruction per line, with or without the organisers' `category<TAB>` prefix) is a scene, in
+name order, and the instruction ids are `<subfolder>_i1`, `_i2`, ... as in the organisers' files.
+A `calibration.json` in the folder or in a scene is used when present and not needed otherwise;
+a single scene folder passed directly also works. Nothing else is read.
 
 Each run writes two files next to the results file: `<out>.scenes.json` (the vision outputs,
 cached, so a second run skips the vision stage) and `<out>.raw.jsonl` (per instruction: the
