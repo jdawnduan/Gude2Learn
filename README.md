@@ -1,10 +1,11 @@
-# See It, Say It, Pick It — team Apertus-2A-ZHAW
+# See It, Say It, Pick It — team Gude2Learn
 
 **Hack Apertus 2026 · ZHAW challenge.** One photo of a robot workcell and one English instruction
 go in; the pixel of the object the robot should pick first and the ordered actions come out. An
 ambiguous instruction gets a question, an impossible or unsafe one a refusal.
 
-This repository is our submission. Apertus v1.5 8B (text only, 4-bit, in Ollama) writes every
+This repository is the submission of team Gude2Learn (Dawn Duan and Claude Code). Apertus v1.5
+8B (text only, 4-bit, in Ollama) writes every
 answer; an open vision model only lists the objects it sees; Python does the geometry, turns it
 into hints and checks the answer against them, and renders the result. Everything runs locally on
 a 5 GB GPU. How much of each answer is Apertus and how much is Python is measured and stated

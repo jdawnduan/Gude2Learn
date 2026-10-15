@@ -946,7 +946,7 @@ def main():
                     help="any open vision model, only lists objects (Apple Silicon: qwen3.5:9b-mlx; small GPU: qwen3.5:4b)")
     ap.add_argument("--max-side", type=int, default=1024, help="resize the photo for the vision model")
     ap.add_argument("--limit", type=int, help="only the first N instructions")
-    ap.add_argument("--team", default="Apertus-2A-ZHAW")
+    ap.add_argument("--team", default="Gude2Learn", help="team name written into the results file")
     ap.add_argument("--no-schema", action="store_true", help="plain JSON mode instead of schema-constrained decoding")
     ap.add_argument("--no-hints", action="store_true", help="do not give Apertus the resolved references (ablation)")
     ap.add_argument("--think", action="store_true", help="let Apertus think before answering (slower)")

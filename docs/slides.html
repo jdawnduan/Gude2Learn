@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="claude:viewport-fit-sides" content="cover">
-<title>Apertus-2A-ZHAW Submission Deck</title>
+<title>Gude2Learn Submission Deck</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: five fixed 297mm x 167mm paper slides (one printed page each), stacked and scaled to fit on screen. */
@@ -161,7 +161,7 @@ tr.repro td.num{font-style:normal}
 <!-- 1 -->
 <div class="frame"><section class="slide s1">
   <div>
-    <div class="eyebrow">Hack Apertus 2026 · ZHAW challenge · Team Apertus-2A-ZHAW</div>
+    <div class="eyebrow">Hack Apertus 2026 · ZHAW challenge · Team Gude2Learn · Dawn Duan and Claude Code</div>
     <h1>See It, Say It, Pick It</h1>
     <p class="sub">One photo of a robot workcell and one English sentence become a safe robot action: a plan, a question, or a refusal.</p>
   </div>
@@ -188,7 +188,7 @@ tr.repro td.num{font-style:normal}
       <div class="note">plans answered with a plan; no-plan cases with the right answer type</div>
     </div>
   </div>
-  <div class="foot"><span>Apertus-2A-ZHAW · See It, Say It, Pick It</span><span>1 / 5</span></div>
+  <div class="foot"><span>Gude2Learn · See It, Say It, Pick It</span><span>1 / 5</span></div>
 </section></div>
 
 <!-- 2 -->
@@ -222,7 +222,7 @@ tr.repro td.num{font-style:normal}
     <div class="call"><h3>Python does geometry, rules and rendering</h3>Counting matches, left/right/closest, what lies on what, which tray, what is excluded, where things go: computed from coordinates and written into the prompt as hints, so Apertus does not have to do arithmetic.</div>
     <div class="call"><h3>Constrained decoding, per-scene schema</h3>The grammar admits pick/place steps only over the names in this scene, or exactly one question, or exactly one refusal. No malformed answers, no invented objects.</div>
   </div>
-  <div class="foot"><span>Apertus-2A-ZHAW · See It, Say It, Pick It</span><span>2 / 5</span></div>
+  <div class="foot"><span>Gude2Learn · See It, Say It, Pick It</span><span>2 / 5</span></div>
 </section></div>
 
 <!-- 3 -->
@@ -251,7 +251,7 @@ tr.repro td.num{font-style:normal}
     <div><span class="d">62.5 &rarr; 65.0</span><span><strong>Machine parts by size.</strong> The last two misses were vision labels: layout pass asks for the parts, fragments merged, each part relabelled by the long side of its box.</span></div>
     <div><span class="d">plan quality</span><span><strong>Review fixes, score unchanged.</strong> Pick-pick sequences, "except" objects moved, dropped destinations, a lifted stack: now hints + check rules, up to three rounds. Ablations: no check 50.4, no hints 48.8.</span></div>
   </div>
-  <div class="foot"><span>Apertus-2A-ZHAW · See It, Say It, Pick It</span><span>3 / 5</span></div>
+  <div class="foot"><span>Gude2Learn · See It, Say It, Pick It</span><span>3 / 5</span></div>
 </section></div>
 
 <!-- 4 -->
@@ -275,7 +275,7 @@ tr.repro td.num{font-style:normal}
     <span class="k">Answer</span><span><span class="mono">ask_user</span>: "Which red gear should I pick up: the leftmost red gear (<code>red_gear_1</code>), the middle red gear (<code>red_gear_2</code>), or the rightmost red gear (<code>red_gear_3</code>)?" The description comes from the geometry; the name stays in brackets so the reply can use it.</span>
     <span class="k">Vision side</span><span>qwen3.5 9B at 1024 px finds the flat black tray only on a dedicated question, reports stacking rarely and sometimes reversed, confuses the three machine parts and sometimes splits or misses the small module; loose boxes put a banana's box centre on the table. Each has a Python fallback (priors, box overlap, size relabelling, colour-based pixel refinement).</span>
   </div>
-  <div class="foot"><span>Apertus-2A-ZHAW · See It, Say It, Pick It</span><span>4 / 5</span></div>
+  <div class="foot"><span>Gude2Learn · See It, Say It, Pick It</span><span>4 / 5</span></div>
 </section></div>
 
 <!-- 5 -->
@@ -313,7 +313,7 @@ tr.repro td.num{font-style:normal}
     <span><strong>Code:</strong> <a href="https://github.com/jdawnduan/Apertus-2A-ZHAW">github.com/jdawnduan/Apertus-2A-ZHAW</a> · Apache-2.0 · README: committed answers re-score in 2 min, full rerun ~45 min on a 5 GB GPU, 11 min on the second box</span>
     <span class="mono">results.json · results_heldout.json · docs/REPORT.md · attempts/README.md</span>
   </div>
-  <div class="foot"><span>Apertus-2A-ZHAW · See It, Say It, Pick It</span><span>5 / 5</span></div>
+  <div class="foot"><span>Gude2Learn · See It, Say It, Pick It</span><span>5 / 5</span></div>
 </section></div>
 
 </div>
