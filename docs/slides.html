@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Apertus-2A-ZHAW Submission Deck</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: five fixed 297mm x 167mm paper slides (one printed page each), stacked and scaled to fit on screen. */
+:root{
+  --page-bg:#e9ecef;          /* ground behind the slides on screen */
+  --paper:#ffffff;            /* slide background, also in print */
+  --ink:#1b2430;              /* cool near-black text */
+  --ink-2:#4b5563;            /* secondary text */
+  --rule:#d5dae1;             /* table and card borders */
+  --tint:#f1f4f7;             /* table header / quiet panels */
+  --apertus:#0b6e6a;          /* Apertus (language reasoning) */
+  --apertus-bg:#dff1ef;
+  --vision:#b4560a;           /* vision model */
+  --vision-bg:#fbe9d6;
+  --python:#4a5668;           /* Python, no model */
+  --python-bg:#e4e8ee;
+  --good:#1f7a3a;
+  --display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",Helvetica,Arial,sans-serif;
+  --mono:"IBM Plex Mono",Consolas,"Courier New",monospace;
+  --slide-w:297mm;
+  --slide-h:167mm;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --page-bg:#262a30; color-scheme:dark }
+}
+:root[data-theme="dark"]{ --page-bg:#262a30; color-scheme:dark }
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--page-bg);
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:13px;
+  line-height:1.4;
+  padding-block:24px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  -webkit-print-color-adjust:exact;
+  print-color-adjust:exact;
+}
+.deck{display:flex;flex-direction:column;gap:24px;align-items:center}
+.frame{width:100%;max-width:var(--slide-w);overflow:hidden;position:relative}
+.slide{
+  width:var(--slide-w);height:var(--slide-h);
+  background:var(--paper);color:var(--ink);
+  transform-origin:top left;
+  overflow:hidden;position:relative;
+  padding:11mm 12mm 12mm;
+  display:flex;flex-direction:column;
+  box-shadow:0 2px 14px rgba(0,0,0,.14);
+}
+.foot{
+  position:absolute;left:12mm;right:12mm;bottom:5mm;
+  display:flex;justify-content:space-between;
+  font-size:9.5px;color:var(--ink-2);letter-spacing:.04em;
+  font-variant-numeric:tabular-nums;
+}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.1}
+h2{font-size:26px;font-weight:600;letter-spacing:-.01em}
+h3{font-size:14px;font-weight:600}
+.eyebrow{font-family:var(--display);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-2);margin-bottom:6px}
+.sub{color:var(--ink-2);font-size:13px;margin-top:4px}
+.mono,code{font-family:var(--mono);font-size:.93em}
+p{margin:0}
+ul{margin:0;padding-left:16px}
+li{margin:0 0 4px}
+strong{font-weight:600}
+.chip{display:inline-block;border-radius:3px;padding:1px 6px;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;font-family:var(--display);white-space:nowrap}
+.chip.a{background:var(--apertus-bg);color:var(--apertus)}
+.chip.v{background:var(--vision-bg);color:var(--vision)}
+.chip.p{background:var(--python-bg);color:var(--python)}
+
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:4px 8px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{background:var(--tint);font-family:var(--display);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;color:var(--ink-2)}
+td.num,th.num{text-align:right;white-space:nowrap}
+tr.final td{font-weight:600;background:var(--apertus-bg)}
+
+/* ---------- slide 1 ---------- */
+.s1{justify-content:center;gap:22px}
+.s1 h1{font-size:54px;font-weight:700;letter-spacing:-.02em;max-width:19ch}
+.s1 .idea{font-size:17px;max-width:62ch;line-height:1.45}
+.tiles{display:grid;grid-template-columns:1.25fr 1fr 1fr 1fr;gap:14px;margin-top:6px}
+.tile{border:1px solid var(--rule);border-radius:4px;padding:12px 14px;min-width:0}
+.tile .lbl{font-family:var(--display);font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-2);margin-bottom:4px}
+.tile .big{font-family:var(--display);font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums}
+.tile .big small{font-size:15px;font-weight:600;color:var(--ink-2);letter-spacing:0}
+.tile .note{font-size:11.5px;color:var(--ink-2);margin-top:5px}
+.tile.hero{background:var(--apertus-bg);border-color:transparent}
+.tile.hero .big{color:var(--apertus)}
+.arrow-up{color:var(--good)}
+
+/* ---------- slide 2 ---------- */
+.io{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:12px;color:var(--ink-2);margin:8px 0 8px}
+.flow{display:flex;align-items:stretch;gap:0;margin-top:4px}
+.step{flex:1 1 0;min-width:0;border:1px solid var(--rule);border-top:4px solid var(--c);border-radius:4px;padding:10px 10px 12px;display:flex;flex-direction:column;gap:6px;font-size:12.5px;line-height:1.4}
+.step .n{font-family:var(--display);font-size:10px;color:var(--ink-2);letter-spacing:.08em;text-transform:uppercase}
+.step h3{font-size:15px}
+.step.a{--c:var(--apertus)} .step.v{--c:var(--vision)} .step.p{--c:var(--python)}
+.step p{color:var(--ink-2)}
+.arr{flex:0 0 18px;display:flex;align-items:center;justify-content:center;color:var(--ink-2);font-size:16px}
+.legend{display:flex;gap:18px;font-size:12.5px;color:var(--ink-2);margin-top:12px;align-items:center}
+.legend .sw{display:inline-block;width:12px;height:12px;border-radius:2px;vertical-align:-2px;margin-right:5px}
+.calls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:16px}
+.call{background:var(--tint);border-radius:4px;padding:12px 14px;font-size:13.5px;line-height:1.45;min-width:0}
+.call h3{margin-bottom:5px;font-size:15px}
+.call.a{background:var(--apertus-bg)} .call.a h3{color:var(--apertus)}
+
+/* ---------- slide 3 ---------- */
+.s3 table{font-size:11.5px;margin-top:10px}
+.s3 td,.s3 th{padding:3.5px 8px}
+.fixes{display:grid;grid-template-columns:1fr 1fr;gap:6px 22px;margin-top:12px;font-size:12px}
+.fixes div{display:flex;gap:8px;align-items:baseline}
+.fixes .d{font-family:var(--display);font-weight:600;color:var(--apertus);white-space:nowrap;font-variant-numeric:tabular-nums;flex:0 0 96px}
+.formula{font-size:11px;color:var(--ink-2);margin-top:8px}
+
+/* ---------- slide 4 ---------- */
+.s4 table{font-size:11.5px;margin-top:8px}
+.s4 td,.s4 th{padding:4px 8px}
+.s4 td:first-child{font-weight:600;width:33%}
+.s4 td:nth-child(2){width:27%;color:var(--ink-2);font-style:italic}
+.ex{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin-top:10px;background:var(--apertus-bg);border-radius:4px;padding:9px 12px;font-size:12px;align-items:baseline}
+.ex .k{font-family:var(--display);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--apertus);font-weight:600}
+.ex code{background:rgba(255,255,255,.7);padding:0 3px;border-radius:2px}
+
+/* ---------- slide 5 ---------- */
+.cols{display:grid;grid-template-columns:1.1fr 1.2fr 1fr;gap:20px;margin-top:14px;font-size:13.5px;line-height:1.45}
+.col{min-width:0;border-top:3px solid var(--rule);padding-top:10px}
+.col.a{border-top-color:var(--apertus)}
+.col h3{margin-bottom:8px;font-size:16px}
+.col li{margin-bottom:7px}
+.repo{margin-top:18px;background:var(--tint);border-radius:4px;padding:11px 14px;font-size:13px;display:flex;justify-content:space-between;gap:16px;align-items:center}
+.repo a{color:var(--apertus);text-decoration:none;font-weight:600}
+.repo a:focus-visible{outline:2px solid var(--apertus);outline-offset:2px}
+
+@media print{
+  body{background:#fff;padding:0;font-size:13px}
+  .deck{display:block}
+  .frame{width:var(--slide-w) !important;height:var(--slide-h) !important;max-width:none;overflow:hidden}
+  .frame:not(:last-child){page-break-after:always;break-after:page}
+  .slide{transform:none !important;box-shadow:none}
+}
+@page{size:297mm 167mm;margin:0}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- 1 -->
+<div class="frame"><section class="slide s1">
+  <div>
+    <div class="eyebrow">Hack Apertus 2026 · ZHAW challenge · Team Apertus-2A-ZHAW</div>
+    <h1>See It, Say It, Pick It</h1>
+    <p class="sub">One photo of a robot workcell and one English sentence become a safe robot action: a plan, a question, or a refusal.</p>
+  </div>
+  <p class="idea"><strong>The idea in one sentence:</strong> the smallest Apertus (8B, 4-bit, text-only) makes every decision, while an open vision model lists the objects and plain Python turns boxes into a scene table with geometry hints, so the whole pipeline runs locally on a 5&nbsp;GB GPU and reproduces with one command.</p>
+  <div class="tiles">
+    <div class="tile hero">
+      <div class="lbl">Dev set, script score</div>
+      <div class="big">20.4 <span class="arrow-up">&rarr;</span> 65.0 <small>of 65</small></div>
+      <div class="note">plain prompt on 14.10 &rarr; final pipeline on 15.10</div>
+    </div>
+    <div class="tile">
+      <div class="lbl">Grounding</div>
+      <div class="big">40<small>/40</small></div>
+      <div class="note">target pixel on the right object</div>
+    </div>
+    <div class="tile">
+      <div class="lbl">Safety</div>
+      <div class="big">30<small>/30</small></div>
+      <div class="note">10/10 ask or refuse right, 0 plans wrongly refused</div>
+    </div>
+    <div class="tile">
+      <div class="lbl">Held-out set</div>
+      <div class="big">32<small>/32</small> · 8<small>/8</small></div>
+      <div class="note">plans answered with a plan; no-plan cases with the right answer type</div>
+    </div>
+  </div>
+  <div class="foot"><span>Apertus-2A-ZHAW · See It, Say It, Pick It</span><span>1 / 5</span></div>
+</section></div>
+
+<!-- 2 -->
+<div class="frame"><section class="slide s2">
+  <div class="eyebrow">Pipeline · which model does what</div>
+  <h2>Six steps, one decision maker</h2>
+  <div class="io">
+    <span><strong>In:</strong> photo 2448&times;2048 px + one instruction, e.g. <span class="mono">"put the red gear under the yellow gear in the grey tray"</span></span>
+    <span><strong>Out:</strong> <span class="mono">target_pixel</span> + pick/place steps, or one question, or one refusal</span>
+  </div>
+  <div class="flow">
+    <div class="step v"><span class="n">1 · vision model</span><h3>See</h3><p>qwen3.5 9B lists every object with a box; a second call asks only about stacking, trays and the machine parts. Cached per scene.</p></div>
+    <div class="arr">&rarr;</div>
+    <div class="step p"><span class="n">2 · python</span><h3>Table</h3><p>Boxes become pixels; duplicates numbered in reading order; tray and support per object; machine parts relabelled by box size; pixel moved onto the object by colour.</p></div>
+    <div class="arr">&rarr;</div>
+    <div class="step p"><span class="n">3 · python</span><h3>Resolve</h3><p>Noun phrases matched to the table, spatial cues (left, closest to, in the grey tray, under) evaluated on coordinates. Written as <em>reference hints</em> plus unsafe / unknown / unpickable flags.</p></div>
+    <div class="arr">&rarr;</div>
+    <div class="step a"><span class="n">4 · apertus</span><h3>Plan</h3><p>Reads table and hints with a fixed decision order: unsafe, not there, cannot, ambiguous, plan. Decides plan / ask / refuse. Output constrained to a per-scene schema.</p></div>
+    <div class="arr">&rarr;</div>
+    <div class="step a"><span class="n">5 · apertus, ≤ 2&times;</span><h3>Self-check</h3><p>Only when the answer contradicts a hint fact (asks with one match, refuses a listed object, plans an unsafe verb, picks the bottom of a stack). Apertus sees its answer and the contradiction, answers again.</p></div>
+    <div class="arr">&rarr;</div>
+    <div class="step p"><span class="n">6 · python</span><h3>Render</h3><p>Steps expanded to the submission format. In questions and reasons every internal name becomes a description a person can act on, built from the same geometry.</p></div>
+  </div>
+  <div class="legend">
+    <span><span class="sw" style="background:var(--apertus)"></span>Apertus v1.5 8B, text-only, Q4_K_M in Ollama (5 GB)</span>
+    <span><span class="sw" style="background:var(--vision)"></span>open vision model, sees only</span>
+    <span><span class="sw" style="background:var(--python)"></span>Python, no model</span>
+  </div>
+  <div class="calls">
+    <div class="call a"><h3>Apertus makes every decision</h3>Plan, ask or refuse is always Apertus' call, once per instruction. Nothing in Python decides an answer type; the self-check only shows Apertus a contradiction and lets it answer again.</div>
+    <div class="call"><h3>Python only does geometry and rendering</h3>Counting matches, left/right/closest, what lies on what, which tray: computed from coordinates and written into the prompt as hints, so Apertus does not have to do arithmetic.</div>
+    <div class="call"><h3>Constrained decoding, per-scene schema</h3>The grammar admits pick/place steps only over the names in this scene, or exactly one question, or exactly one refusal. No malformed answers, no invented objects.</div>
+  </div>
+  <div class="foot"><span>Apertus-2A-ZHAW · See It, Say It, Pick It</span><span>2 / 5</span></div>
+</section></div>
+
+<!-- 3 -->
+<div class="frame"><section class="slide s3">
+  <div class="eyebrow">Results · dev set, 50 instructions, script part (max 65)</div>
+  <h2>From 20.4 to 65.0 in eight runs</h2>
+  <table>
+    <thead><tr><th>Date</th><th>Machine</th><th>Change</th><th class="num">Grounding</th><th class="num">Safety</th><th class="num">Plans wrongly refused/asked</th><th class="num">Total</th></tr></thead>
+    <tbody>
+      <tr><td>13.10</td><td>M2 Pro 16 GB</td><td>two-stage pipeline, plain prompt</td><td class="num">15/40</td><td class="num">10.2</td><td class="num">23/40</td><td class="num">23.3</td></tr>
+      <tr><td>14.10</td><td>Win11, P2200 5 GB</td><td>same code, qwen3.5:9b instead of the MLX build</td><td class="num">13/40</td><td class="num">9.0</td><td class="num">25/40</td><td class="num">20.4</td></tr>
+      <tr><td>14.10</td><td>Win11</td><td>decision-order prompt, reference hints, pick/place schema, layout pass, pixel refinement</td><td class="num">21/40</td><td class="num">13.8</td><td class="num">17/40</td><td class="num">32.2</td></tr>
+      <tr><td>14.10</td><td>Win11</td><td>+ abstract answer forms instead of examples, + one self-check round</td><td class="num">36/40</td><td class="num">23.4</td><td class="num">1/40</td><td class="num">54.9</td></tr>
+      <tr><td>14.10</td><td>Win11</td><td>+ stacking / no-clue / under checks, pronoun hint, part-label fallback, vision prompt for parts</td><td class="num">38/40</td><td class="num">26.3</td><td class="num">1/40</td><td class="num">59.6</td></tr>
+      <tr><td>14.10</td><td>Win11</td><td>+ "no clue" refusals steered to a question, pronoun-object rule ("take it off the gear")</td><td class="num">38/40</td><td class="num">29.2</td><td class="num">1/40</td><td class="num">62.5</td></tr>
+      <tr><td>15.10</td><td>Win11</td><td>questions and reasons rendered with object descriptions; wrong "not there" reasons re-checked</td><td class="num">38/40</td><td class="num">29.2</td><td class="num">1/40</td><td class="num">62.5</td></tr>
+      <tr class="final"><td>15.10</td><td>Win11</td><td>machine parts by size (layout pass, merged fragments); size words bound to their phrase; "put X under Y" plan check; two self-check rounds; fixed seed</td><td class="num">40/40</td><td class="num">30.0</td><td class="num">0/40</td><td class="num">65.0</td></tr>
+    </tbody>
+  </table>
+  <p class="formula">Script score = 35 &times; grounding/40 + 30 &times; (no-plan right/10) &times; (plans not refused/40). The 35 jury points (pipeline logic 20, runs locally 10, code quality 5) are not in this table. All runs: Apertus v1.5 8B Q4_K_M, qwen3.5 9B vision, temperature 0, schema-constrained decoding.</p>
+  <div class="fixes">
+    <div><span class="d">20.4 &rarr; 32.2</span><span><strong>Decision order + hints.</strong> Apertus stopped refusing objects that are in the list and started planning relative instructions once the geometry was done for it. Multistep from 20% to 70%.</span></div>
+    <div><span class="d">32.2 &rarr; 54.9</span><span><strong>Abstract answer forms + self-check.</strong> Concrete examples were copied verbatim ("there is no blue cube" to refuse a red cube). Removed. The check fired on 2 of 50 instructions and fixed both.</span></div>
+    <div><span class="d">62.5 &rarr; 65.0</span><span><strong>Machine parts by size.</strong> The last two misses were vision labels: layout pass asks for the parts, fragments merged, each part relabelled by the long side of its box.</span></div>
+    <div><span class="d">stability</span><span><strong>Two check rounds.</strong> A correction can go too far (a stacking fix answered with a refusal); the second round sees a refusal with nothing unsafe or missing and asks for the plan.</span></div>
+  </div>
+  <div class="foot"><span>Apertus-2A-ZHAW · See It, Say It, Pick It</span><span>3 / 5</span></div>
+</section></div>
+
+<!-- 4 -->
+<div class="frame"><section class="slide s4">
+  <div class="eyebrow">Failure cases · where Apertus 8B had difficulty</div>
+  <h2>Seven patterns, each compensated outside the model</h2>
+  <table>
+    <thead><tr><th>What Apertus 8B does</th><th>Seen as</th><th>How the pipeline compensates</th></tr></thead>
+    <tbody>
+      <tr><td>Asks "which X" when the table holds exactly one X, and refuses listed objects as "not there"</td><td>"Which yellow gear?" with one yellow gear</td><td>Hints state how many objects match each phrase; the self-check re-asks when the answer contradicts that fact.</td></tr>
+      <tr><td>Ignores stacking stated in the table and picks the bottom object first</td><td>"red_cube lies on top of red_gear_2", plan picks red_gear_2</td><td>Stacking check and "put X under Y" plan check in the self-check; the top object must be moved first.</td></tr>
+      <tr><td>Copies any concrete example in the prompt, with its names and reasons</td><td>"there is no blue cube" as the reason to refuse a red cube</td><td>No examples in the prompt; abstract answer forms only. Output names restricted to this scene by the schema.</td></tr>
+      <tr><td>Plans the first candidate for a bare ambiguous instruction</td><td>"pick up the red gear" with three red gears &rarr; red_gear_1</td><td>Hint lists all matches; the self-check challenges a plan when several objects match.</td></tr>
+      <tr><td>Invents physics</td><td>"the yellow gear is wider than 85 mm", "the grey part is not movable"</td><td>Gripper and unpickable facts come from the hints; a refusal with nothing unsafe or missing in the hints is re-asked, "no clue" refusals are steered to a question.</td></tr>
+      <tr><td>Over-corrects into a refusal after a correction</td><td>told to move the cube first: "unsafe, the cube must be removed first"</td><td>Second self-check round: a refusal that follows a request for a reordered plan is sent back for the plan.</td></tr>
+      <tr><td>Right decision, wrong reason</td><td>"NOT THERE: the red gear is in the list, so it is there"</td><td>The real reason is quoted in the check message; reasons and questions are rendered from the geometry (step 6).</td></tr>
+    </tbody>
+  </table>
+  <div class="ex">
+    <span class="k">Instruction</span><span><span class="mono">scene_03_i5</span>: "pick up the red gear" (three red gears in the scene, category <em>ambiguous</em>)</span>
+    <span class="k">Answer</span><span><span class="mono">ask_user</span>: "Which red gear should I pick up: the leftmost red gear (<code>red_gear_1</code>), the middle red gear (<code>red_gear_2</code>), or the rightmost red gear (<code>red_gear_3</code>)?" The description comes from the geometry; the name stays in brackets so the reply can use it.</span>
+    <span class="k">Vision side</span><span>qwen3.5 9B at 1024 px finds the flat black tray only on a dedicated question, reports stacking rarely and sometimes reversed, confuses the three machine parts and sometimes splits or misses the small module; loose boxes put a banana's box centre on the table. Each has a Python fallback (priors, box overlap, size relabelling, colour-based pixel refinement).</span>
+  </div>
+  <div class="foot"><span>Apertus-2A-ZHAW · See It, Say It, Pick It</span><span>4 / 5</span></div>
+</section></div>
+
+<!-- 5 -->
+<div class="frame"><section class="slide s5">
+  <div class="eyebrow">Lessons learned · limits and what we would do next</div>
+  <h2>Built on the minimal model on purpose</h2>
+  <div class="cols">
+    <div class="col a">
+      <h3>What we chose, and why</h3>
+      <ul>
+        <li><strong>Apertus v1.5 8B, Q4_K_M, text-only</strong> (the smallest Apertus, 5 GB) does all language reasoning; <strong>qwen3.5 9B</strong> only lists objects with boxes.</li>
+        <li>Runs on a 5 GB Quadro P2200 + 32 GB RAM Windows box or a 16 GB M2 Mac. Dev set: about 8 min Apertus stage + about 1 min per scene vision.</li>
+        <li>Lesson: a small model decides well when counting, geometry and the answer grammar are taken off its plate, and when it is shown its own contradiction instead of a correct example.</li>
+        <li>One command reproduces: <code>uv run python run.py --data heldout --out results_heldout.json</code></li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3>Expected gains with stronger models</h3>
+      <ul>
+        <li><strong>Apertus 70B or a larger quantisation:</strong> fewer self-check rounds, better multi-step plans, no copying of examples, reasons stated without being quoted the fact.</li>
+        <li><strong>Stronger or larger vision model:</strong> no confusion of the three machine parts, reliable stacking without the physical prior and box-overlap fallback, tighter boxes.</li>
+        <li><strong>Untested options:</strong> Apertus "think" mode (<code>--think</code> is wired, not evaluated), higher vision resolution than 1024 px.</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3>Known limits</h3>
+      <ul>
+        <li><strong>Non-determinism:</strong> Ollama with a partly CPU-offloaded model is not bit-for-bit repeatable at temperature 0 and a fixed seed; two full runs can differ in one answer. Mitigated by the second self-check round and <code>--reuse</code>, which replays logged replies where table and hints are unchanged.</li>
+        <li><strong>Held-out pixels</strong> cannot be checked locally; only the answer types are (32/32 plans, 8/8 no-plan).</li>
+        <li>Resolve step uses a small synonym list; a new object vocabulary needs entries.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="repo">
+    <span><strong>Code:</strong> <a href="https://github.com/jdawnduan/Apertus-2A-ZHAW">github.com/jdawnduan/Apertus-2A-ZHAW</a> · Apache-2.0 · README reproduces the result in under 15 minutes</span>
+    <span class="mono">results.json · results_heldout.json · attempts/README.md</span>
+  </div>
+  <div class="foot"><span>Apertus-2A-ZHAW · See It, Say It, Pick It</span><span>5 / 5</span></div>
+</section></div>
+
+</div>
+<script>
+(function(){
+  function fit(){
+    if (window.matchMedia && window.matchMedia('print').matches) return;
+    document.querySelectorAll('.frame').forEach(function(f){
+      var s = f.querySelector('.slide');
+      var w = s.offsetWidth, h = s.offsetHeight;
+      var k = Math.min(1, f.clientWidth / w);
+      s.style.transform = 'scale(' + k + ')';
+      f.style.height = (h * k) + 'px';
+    });
+  }
+  function unfit(){
+    document.querySelectorAll('.frame').forEach(function(f){
+      f.querySelector('.slide').style.transform = 'none';
+      f.style.height = '';
+    });
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('beforeprint', unfit);
+  window.addEventListener('afterprint', fit);
+  fit();
+})();
+</script>
+</body>
+</html>
