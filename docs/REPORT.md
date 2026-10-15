@@ -1,7 +1,7 @@
 # Where Apertus had difficulty
 
-Team Apertus-2A-ZHAW, Hack Apertus 2026, "See It, Say It, Pick It". Team: Jiaxin Duan (PSI) and Claude
-Code (Anthropic's coding agent, used throughout for the pipeline, the reviews and this report). Apertus
+Team Apertus-2A-ZHAW, Hack Apertus 2026, "See It, Say It, Pick It". Team: Dawn Duan and Claude Code
+(Anthropic's coding agent, used throughout for the pipeline, the reviews and this report). Apertus
 v1.5 8B, text-only, 4-bit (a community Q4_K_M GGUF of the swiss-ai weights) in Ollama, temperature 0,
 schema-constrained output; qwen3.5 9B as the vision model; a 5 GB GPU.
 
