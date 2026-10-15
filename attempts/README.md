@@ -12,6 +12,7 @@ What is in this folder:
 | `2026-10-15_win11_fresh_922f1a1.report.json` | a second full run on the Windows box with no cache (vision and Apertus from scratch), 63.4/65: same flipped answer as the Linux box, same cause |
 | `2026-10-15_win11_fresh_part_fallback.report.json` | the same fresh Windows tables re-rendered after the part-reference fallback, 65.0/65 |
 | `2026-10-15_linux_box_final.report.json` | fresh run of the final code on the Linux box, 65.0/65, every category 100%; 48 of 50 dev plans identical to the committed ones (scene_06_i2 has an extra set-aside, scene_09_i4 names the merged part "white_part"), 38 of 50 pixels identical |
+| `2026-10-15_mac_m2pro_mlx.report.json`, `2026-10-15_mac_m2pro_mlx_dev.scenes.json`, `2026-10-15_mac_m2pro_mlx_heldout.scenes.json`, `2026-10-15_mac_m2pro_mlx.results_heldout.json` | fresh run of the final code on the M2 Pro Mac (Ollama 0.32.13, vision `qwen3.5:9b-mlx`, Ollama's MLX build for Apple Silicon): 61.75/65 and 10 of 40 held-out answers of the wrong type, because that runner does not keep to the JSON schema (see the Mac row of the run log). Evidence, not submitted |
 | `2026-10-15_ablation_no_hints.report.json`, `2026-10-15_ablation_no_check.report.json` | ablations of the final prompt on the dev set (committed vision tables): `--no-hints` 48.8/65 (relative 71%, ambiguous 0%), `--no-check` 50.4/65 (= the first replies) |
 | `../report.json` | scorer report of the final dev-set run, 65.0/65 |
 | `../results.json`, `../results_heldout.json` | the submitted answers |
@@ -42,6 +43,7 @@ vision model, temperature 0, schema-constrained decoding.
 | 15.10 | Win11 | part-reference fallback: a part phrase with no matching label falls back to the parts seen also as a reference ("lying on the grey part"), not only as the thing to pick; the fresh Windows tables re-rendered with it (one re-ask); committed answers unchanged | 40/40 | 30.0 | 0/40 | 65.0 (fresh tables) |
 | 15.10 | Win11 | third review pass: the stacking check walks a chain to its top and lets a top object that the instruction moves go straight to the destination (held_05_i8 lost its redundant set-aside; two re-asks); the set-aside step carries no pixel after a measured attempt showed no verifiable bare-table spot in most scenes; prompt hash in every trace record so `--reuse` cannot replay a stale prompt; corrupt cache or trace files named instead of a traceback; setup-script fixes for bash 3.2 and PowerShell 5.1; tests split into named cases plus a stubbed end-to-end run of `main()` | 40/40 | 30.0 | 0/40 | **65.0** |
 | 15.10 | Linux aarch64 (2nd box) | fresh run of the final code (`./setup.sh dev`, part-reference fallback included): every category 100%; the first fresh run on either machine to match the committed answers | 40/40 | 30.0 | 0/40 | **65.0** |
+| 15.10 | M2 Pro 16 GB (Mac) | fresh run of the final code with Ollama 0.32.13 and the MLX build of the vision model (`qwen3.5:9b-mlx`, which `setup.sh` picked by itself when it was pulled; that auto-selection is now removed): the MLX runner does not keep to the JSON schema. scene_06_i3 "pick up the red gear with nothing on it" and scene_08_i1 "pick up the gear in the grey tray" asked instead of planned; the other 48 dev answers have the same type as the committed ones. Held-out: 10 of 40 answers of the wrong type. Details below | 38/40 | 28.5 | 2/40 | 61.75 |
 
 Ablations (same vision tables, final prompt, dev set): `--no-check` 50.4, which equals the first-reply score;
 `--no-hints` (which also disables the checks, since they test against the hints) 48.8, with relative at
@@ -67,6 +69,23 @@ above). The self-check
 rounds are the mitigation on the Apertus side; `--reuse` re-renders from the logged replies when only
 rendering or a check message changed, which is how the committed files were produced after the review
 fixes (31 of 90 re-asked).
+
+A fifth full run, on the M2 Pro Mac with Ollama 0.32.13 and the MLX build of the vision model (`qwen3.5:9b-mlx`,
+the build Ollama offers for Apple Silicon), scored 61.75 and got 10 of 40 held-out answer types wrong. The cause is
+the vision stage again, and larger: the MLX runner does not keep to the `format` JSON schema that the GGUF runner
+honours. Every first-pass reply came in markdown fences (15 of 15; 0 of 30 with the GGUF build), two held-out scenes
+(held_02, held_05) came back as a bare JSON array instead of the `{"objects": [...]}` object, so the parser found no
+object list and the table held only what the layout pass added (one tray; two parts): Apertus then refused eight of
+their instructions as "not there" and fell back to the fixed question twice. The layout pass returned no tray at all in
+3 of 15 scenes, the black tray in 3 of 15 (8 of 15 with the GGUF build), the grey tray came back as a "grey part" in 4
+scenes, and one claimed stack joins two boxes that do not touch (a red cube on the second red gear of scene_06). The
+two dev misses follow directly: "the red gear with nothing on it" was asked because both red gears carried something
+in the table, "the gear in the grey tray" because no tray was in the table. Where the table was the same, Apertus gave
+the same answer type on all 48 remaining dev instructions and, on the 38 plans among them, the same first pick on 37. The GGUF build `qwen3.5:9b`
+is the one behind every committed number; it was not run on the Mac. Two small code changes would recover most of the
+Mac loss (take a bare array as the object list; apply a stack claim only when the two boxes touch): rebuilding the Mac
+tables offline with the first one restores the full object list of both held-out scenes. Neither change was made
+before submission; the `setup.sh` auto-selection of the MLX build was removed.
 
 ## What each step fixed
 
@@ -129,3 +148,6 @@ fixes (31 of 90 re-asked).
   layout pass asks for the parts explicitly, touching fragments are merged, and each part is relabelled by
   the long side of its box (small ~330 px, grey 440-545 px, white ~650 px in the 2448 px photo).
 - Boxes are loose: the box centre of a banana lies on the table (fixed by colour-based pixel refinement).
+- The MLX build (`qwen3.5:9b-mlx`, Ollama 0.32.13 on Apple Silicon) does not keep to the JSON schema: fenced replies in
+  every scene, a bare array instead of the object list in 2 of 15, no tray at all in 3 of 15, the black tray in 3 of 15.
+  Use the GGUF build `qwen3.5:9b` on every platform.

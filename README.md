@@ -32,8 +32,10 @@ under "What we disclose".
 
 ## Set up and run locally
 
-Tested on Windows 11 (Quadro P2200 5 GB + 32 GB RAM) and macOS (M2 Pro 16 GB). Linux works the
-same way. Nothing leaves the machine: Ollama serves both models on `localhost:11434`.
+Tested on Windows 11 (Quadro P2200 5 GB + 32 GB RAM) and a Linux aarch64 box, 65.0 on both with the
+GGUF vision build. On macOS (M2 Pro 16 GB) the pipeline runs, but with the MLX build of the vision
+model it scored 61.75 (step 4 below), so use the GGUF build `qwen3.5:9b` there too. Nothing leaves the machine: Ollama serves both
+models on `localhost:11434`.
 
 ### The short way: one script
 
@@ -52,8 +54,9 @@ Ollama, pulls the two models (only when missing) and reruns the pipeline.
 ```
 
 If PowerShell refuses to run scripts: `powershell -ExecutionPolicy Bypass -File .\setup.ps1`.
-Apple Silicon: the script uses `qwen3.5:9b-mlx` by itself when that build is already pulled;
-otherwise `VISION_MODEL=qwen3.5:9b-mlx ./setup.sh heldout` selects it. A smoke test of the whole chain
+Apple Silicon: the script uses the GGUF build `qwen3.5:9b` like every other platform. The MLX build
+(`VISION_MODEL=qwen3.5:9b-mlx ./setup.sh heldout`) runs but does not keep to the output schema and
+scored 61.75 on the Mac (step 4). A smoke test of the whole chain
 on three instructions: `.\setup.ps1 -Run heldout -Limit 3` or `LIMIT=3 ./setup.sh heldout`
 (the results file is then incomplete; rerun without the limit afterwards).
 
@@ -117,8 +120,10 @@ multimodal Apertus v1.5 needs a vLLM fork and about 20 GB of memory, which is wh
 build plus a separate open vision model is used. `qwen3.5:9b` is the Ollama library build of
 Qwen 3.5 9B. Ollama 0.40.3 (Windows) and 0.40.4 (Linux) were used for every committed number.
 
-- Apple Silicon: `ollama pull qwen3.5:9b-mlx` and add `--vision-model qwen3.5:9b-mlx` to the
-  run commands.
+- Apple Silicon: `qwen3.5:9b` (GGUF) runs there too. The MLX build `qwen3.5:9b-mlx`
+  (`--vision-model qwen3.5:9b-mlx`) does not keep to the JSON schema under Ollama 0.32.13: fenced
+  replies, a bare array instead of the object list in two held-out scenes, fewer trays. It scored
+  61.75 on the dev set (step 4); not recommended.
 - Small GPU (5 GB or less): both models are partly offloaded to the CPU. That is the tested
   setup; it works, only slower. `--vision-model qwen3.5:4b` fits on the card entirely.
 - Close VMs and other memory-hungry programs first: with less than ~4 GB RAM free the vision
@@ -162,6 +167,14 @@ re-rendering the fresh Windows tables with that rule gives 65.0, and the committ
 unchanged by it. A fresh run on the Linux box with the fix (`./setup.sh dev` on the final code)
 scored 65.0, every category at 100%, so the four 63.4 runs are explained and closed. On the Apertus
 side, the self-check rounds (step 5 below) are the mitigation.
+
+A fifth run, on the M2 Pro Mac with Ollama 0.32.13 and the MLX build of the vision model
+(`qwen3.5:9b-mlx`), scored 61.75: that runner does not keep to the JSON schema (every reply in
+markdown fences, a bare array instead of the object list in two held-out scenes, no tray at all in
+3 of 15 scenes, one invented stack), so two dev instructions were asked instead of planned and 10
+of 40 held-out answers have the wrong type. The scorer report and the tables are in `attempts/`
+and the run log there has the detail; the Apertus answers were otherwise the same. The GGUF build
+is the one to use on every platform.
 
 Useful flags: `--limit N` (first N instructions), `--reuse` (take replies from `<out>.raw.jsonl`
 where table and hints are unchanged, so a wording change reruns in seconds), `--no-hints` and

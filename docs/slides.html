@@ -118,8 +118,8 @@ tr.repro td.num{font-style:normal}
 .call.a{background:var(--apertus-bg)} .call.a h3{color:var(--apertus)}
 
 /* ---------- slide 3 ---------- */
-.s3 table{font-size:10.5px;margin-top:6px;line-height:1.28}
-.s3 td,.s3 th{padding:2.5px 7px}
+.s3 table{font-size:10px;margin-top:5px;line-height:1.25}
+.s3 td,.s3 th{padding:2px 7px}
 .fixes{display:grid;grid-template-columns:1fr 1fr;gap:4px 20px;margin-top:7px;font-size:11px}
 .s3 .formula{margin-top:6px;font-size:10.5px}
 .fixes div{display:flex;gap:8px;align-items:baseline}
@@ -170,7 +170,7 @@ tr.repro td.num{font-style:normal}
     <div class="tile hero">
       <div class="lbl">Dev set, script score</div>
       <div class="big">20.4 <span class="arrow-up">&rarr;</span> 65.0 <small>of 65</small></div>
-      <div class="note">plain prompt on 14.10 &rarr; final pipeline on 15.10; fresh clone on a second machine: 63.4 (one answer flipped)</div>
+      <div class="note">plain prompt on 14.10 &rarr; final pipeline on 15.10; fresh clone on a second machine: 63.4 (one answer flipped), then 65.0 with the final code; Mac with the MLX vision build: 61.75 (schema ignored)</div>
     </div>
     <div class="tile">
       <div class="lbl">Grounding</div>
@@ -241,10 +241,11 @@ tr.repro td.num{font-style:normal}
       <tr><td>15.10</td><td>Win11</td><td>questions and reasons rendered with object descriptions; wrong "not there" reasons re-checked</td><td class="num">38/40</td><td class="num">29.2</td><td class="num">1/40</td><td class="num">62.5</td></tr>
       <tr class="final"><td>15.10</td><td>Win11</td><td>machine parts by size (layout pass, merged fragments); size words bound to their phrase; "put X under Y" plan check; two self-check rounds; fixed seed</td><td class="num">40/40</td><td class="num">30.0</td><td class="num">0/40</td><td class="num">65.0</td></tr>
       <tr class="final"><td>15.10</td><td>Win11</td><td>after two reviews of the plans the scorer does not read: set-aside as a place (no pick-pick), "except", destination and all-stacks checks, third round; re-asked where hints changed, rest replayed (<code>--reuse</code>)</td><td class="num">40/40</td><td class="num">30.0</td><td class="num">0/40</td><td class="num">65.0</td></tr>
-      <tr class="repro"><td>15.10</td><td>Linux box (3 runs), Win11 fresh</td><td>fresh runs of the 15.10 afternoon code (before the part-reference fallback): 63.4 every time, always scene_09_i3 asked instead of planned, because the vision model drew two parts as one box; the committed run is the one of four where it drew them apart. The part-reference fallback resolves that table too: the fresh Win11 tables re-rendered give 65.0, and a fresh Linux run of the final code scored 65.0</td><td class="num">39/40</td><td class="num">29.2</td><td class="num">1/40</td><td class="num">63.4 → 65.0</td></tr>
+      <tr class="repro"><td>15.10</td><td>Linux box (3 runs), Win11 fresh</td><td>fresh runs of the 15.10 afternoon code: 63.4 every time, always scene_09_i3 asked instead of planned (the vision model drew two parts as one box). The part-reference fallback resolves that table: fresh Win11 tables re-rendered 65.0, fresh Linux run of the final code 65.0</td><td class="num">39/40</td><td class="num">29.2</td><td class="num">1/40</td><td class="num">63.4 → 65.0</td></tr>
+      <tr class="repro"><td>15.10</td><td>M2 Pro Mac, MLX vision build</td><td>fresh run with the MLX build of the vision model (<code>qwen3.5:9b-mlx</code>, Ollama 0.32): that runner ignores the JSON schema (fences, a bare array in two held-out scenes, no tray in 3 of 15 scenes); two dev answers asked instead of planned, 10 of 40 held-out answer types wrong. Use the GGUF build</td><td class="num">38/40</td><td class="num">28.5</td><td class="num">2/40</td><td class="num">61.75</td></tr>
     </tbody>
   </table>
-  <p class="formula">Script score = 35 &times; grounding/40 + 30 &times; (no-plan right/10) &times; (plans not refused/40). The 35 jury points (pipeline logic 20, runs locally 10, code quality 5) are not in this table. All runs: Apertus v1.5 8B Q4_K_M, qwen3.5 9B vision, temperature 0, schema-constrained decoding. The last row is the submitted code rerun from scratch (Linux box three times, Windows once, Ollama 0.40.x): one vision box decides between 65.0 and 63.4, see slide 5.</p>
+  <p class="formula">Script score = 35 &times; grounding/40 + 30 &times; (no-plan right/10) &times; (plans not refused/40). The 35 jury points (pipeline logic 20, runs locally 10, code quality 5) are not in this table. All runs: Apertus v1.5 8B Q4_K_M, qwen3.5 9B vision, temperature 0, schema-constrained decoding. Italic rows are reruns from scratch: Linux box three times and Windows once (Ollama 0.40.x), where one vision box decides between 65.0 and 63.4, and the Mac with the MLX vision build; see slide 5.</p>
   <div class="fixes">
     <div><span class="d">20.4 &rarr; 32.2</span><span><strong>Decision order + hints.</strong> Apertus stopped refusing objects that are in the list and started planning relative instructions once the geometry was done for it. Multistep from 20% to 70%.</span></div>
     <div><span class="d">32.2 &rarr; 54.9</span><span><strong>Abstract answer forms + self-check.</strong> Concrete examples were copied verbatim ("there is no blue cube" to refuse a red cube). Removed. The check fired on 2 of 50 instructions and fixed both.</span></div>
@@ -287,7 +288,7 @@ tr.repro td.num{font-style:normal}
       <h3>What we chose, and why</h3>
       <ul>
         <li><strong>Apertus v1.5 8B, Q4_K_M, text-only</strong> (the smallest Apertus, 5 GB) does all language reasoning; <strong>qwen3.5 9B</strong> only lists objects with boxes.</li>
-        <li>Runs on a 5 GB Quadro P2200 + 32 GB RAM Windows box, a 16 GB M2 Mac, and a Linux aarch64 box (dev set in 638 s there; about 25 min on the P2200).</li>
+        <li>Runs on a 5 GB Quadro P2200 + 32 GB RAM Windows box and a Linux aarch64 box (65.0 on both; dev set in 638 s there, about 25 min on the P2200). A 16 GB M2 Mac runs it too, but the MLX vision build there ignores the JSON schema (61.75): use the GGUF build.</li>
         <li>Lesson: a small model decides well when counting, geometry and the answer grammar are taken off its plate, and when it is shown its own contradiction instead of a correct example.</li>
         <li>One command reproduces: <code>uv run python run.py --data heldout --out results_heldout.json</code></li>
       </ul>
@@ -303,7 +304,7 @@ tr.repro td.num{font-style:normal}
     <div class="col">
       <h3>Known limits</h3>
       <ul>
-        <li><strong>Non-determinism, vision side:</strong> four full runs (Windows committed, Linux box three times, Windows fresh): three score 63.4, all on "pick up the object lying on the grey part", because the vision model drew the grey part and the small part of that scene as one box. The committed 65.0 is the one run where it drew them apart; the other 14 tables agree within a few pixels. A part-reference fallback now resolves the merged table: fresh Windows tables 65.0, and a fresh Linux run of the final code 65.0; the committed answers are unchanged by it. The committed files are a <code>--reuse</code> re-render (31 of 90 re-asked after the review).</li>
+        <li><strong>Non-determinism, vision side:</strong> four full runs (Windows committed, Linux box three times, Windows fresh): three score 63.4, all on "pick up the object lying on the grey part", because the vision model drew the grey part and the small part of that scene as one box. The committed 65.0 is the one run where it drew them apart; the other 14 tables agree within a few pixels. A part-reference fallback now resolves the merged table: fresh Windows tables 65.0, and a fresh Linux run of the final code 65.0; the committed answers are unchanged by it. The committed files are a <code>--reuse</code> re-render (31 of 90 re-asked after the review). A fifth run, Mac with the MLX vision build: 61.75, that runner ignores the schema (fences, bare arrays, missing trays).</li>
         <li><strong>Held-out:</strong> pixels cannot be checked locally, only the answer types (32/32 plans, 8/8 no-plan, from the published labels). The resolver's synonyms and cues were extended on the published held-out wording after its release (disclosed in README and report): weaker evidence than a blind run.</li>
         <li>Black tray missing from the vision table in 7 of 15 scenes; unsafe detection is a keyword list; refusal labels sometimes wrong.</li>
       </ul>

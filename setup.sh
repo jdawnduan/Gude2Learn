@@ -6,15 +6,12 @@
 #   ./setup.sh heldout      # ... and rerun the held-out set (~20 min)
 #   ./setup.sh all          # both
 # If uv or Ollama is missing the script stops and tells you how to install it.
-# VISION_MODEL=qwen3.5:9b-mlx ./setup.sh dev   uses the Apple-Silicon build of the vision model (tiny GPU: qwen3.5:4b).
+# VISION_MODEL=qwen3.5:4b ./setup.sh dev   another vision model (tiny GPU). The Apple-Silicon MLX build qwen3.5:9b-mlx is not
+#                                           auto-selected any more: its runner ignores the JSON schema (61.75 on the Mac, see README).
 # LIMIT=3 ./setup.sh heldout                   smoke test: only the first 3 instructions (results file is then incomplete).
 set -u
 RUN="${1:-check}"
 APERTUS="hf.co/Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF"
-if [ -z "${VISION_MODEL:-}" ] && [ "$(uname -s)" = Darwin ] && [ "$(uname -m)" = arm64 ] \
-        && ollama list 2>/dev/null | awk 'NR > 1 {print $1}' | grep -qxF qwen3.5:9b-mlx; then
-    VISION_MODEL=qwen3.5:9b-mlx     # Apple Silicon with the MLX build already pulled: use it, no second download
-fi
 VISION_MODEL="${VISION_MODEL:-qwen3.5:9b}"
 LIMIT_ARGS=(); [ -n "${LIMIT:-}" ] && LIMIT_ARGS=(--limit "$LIMIT")   # expanded with ${LIMIT_ARGS[@]+...}: empty arrays are "unbound" in bash 3.2 (macOS)
 missing=0

@@ -77,7 +77,9 @@ dedicated second call (and still misses it in 7 of 15 scene tables), and reports
 sometimes reversed. The fixes are mechanical: a second call for trays, stacks and parts; fragments merged;
 parts relabelled by box size since the camera is fixed; the target pixel moved from the box centre onto
 the object by colour, or to the centre of the largest inscribed circle for a concave shape such as the
-banana. Apertus cannot repair a wrong label, so vision is its ceiling.
+banana. Apertus cannot repair a wrong label, so vision is its ceiling. The MLX build of the same model (Apple
+Silicon, Ollama 0.32.13) is worse: it does not keep to the output schema, finds trays less often and listed the grey
+tray as a machine part in 4 of 15 scenes (next section).
 
 ## Nondeterminism: one vision box decided between 65.0 and 63.4
 
@@ -97,6 +99,19 @@ run of the final code on the Linux box then scored 65.0 with every category at 1
 explained and closed. The committed files are a `--reuse` re-render: after the
 review fixes, 31 of 90 instructions were re-asked, later passes a few more, and the other replies were
 replayed from the previous traces (the prompt is unchanged, and its hash is now in every trace record).
+
+A fifth run, on a 16 GB M2 Pro Mac with Ollama 0.32.13 and the MLX build of the vision model (`qwen3.5:9b-mlx`),
+scored 61.75 on the dev set and got 10 of 40 held-out answer types wrong (scorer report and tables in
+`attempts/`). The cause is the vision side again, and larger: the MLX runner does not keep to the JSON schema
+that the GGUF runner honours. Every first-pass reply came in markdown fences, two held-out scenes came back as
+a bare array instead of the `{"objects": [...]}` object, so their tables held almost nothing and Apertus refused
+eight of their instructions as "not there"; the layout pass found no tray at all in 3 of 15 scenes and the black
+tray in 3 instead of 8, and it claimed a stack between two boxes that do not touch. The two dev misses are "pick
+up the red gear with nothing on it" (both gears carried something in the table) and "pick up the gear in the grey
+tray" (no tray in the table), both asked instead of planned. Where the table was the same, Apertus gave the same
+answer type on all 48 remaining dev instructions. The GGUF build `qwen3.5:9b` is the one behind every committed
+number; it was not run on the Mac. Taking a bare array as the object list and applying a stack claim only when
+the boxes touch would recover most of the Mac loss; neither change was made before submission.
 
 ## What we disclose
 
@@ -134,14 +149,19 @@ model and Ollama's build of Qwen 3.5 9B, both unmodified.
   chooses the spot. A stack three objects high would need the check's chain walk, which no scene
   exercises.
 - Plans beyond the first pick are not scored; the review fixes above came from reading them by hand.
+- The vision stage relies on schema-constrained decoding. A runner that ignores the `format` schema (the MLX
+  runner under Ollama 0.32.13) returns fences, bare arrays and empty tray lists, and the parser takes an
+  unexpected shape as an empty table: 61.75 on the Mac instead of 65.0.
 
 ## Future work
 
 Not tried, expected to help, in the order we would do them:
 
-1. **Geometric tray detection.** The camera is fixed and the trays have a known size, so a threshold and
-   contour pass would find the black tray in every photo without a model call and close the gap that
-   leaves it out of 7 of 15 tables. About half a day, plus a cache rebuild.
+1. **Geometric tray detection, and a parser that takes a bare array.** The camera is fixed and the trays
+   have a known size, so a threshold and contour pass would find the black tray in every photo without a
+   model call and close the gap that leaves it out of 7 of 15 tables (12 of 15 with the MLX build). About
+   half a day, plus a cache rebuild. Taking a bare array as the object list and requiring touching boxes
+   for a stack claim is an hour and would have recovered most of the Mac run.
 2. **Containment and stacking from pixels, not boxes.** Containment by the fraction of an object's box
    inside the container instead of its centre; stacking from the colour-refined blobs instead of raw box
    overlap; no "largest / smallest" description when a box is shrunk by occlusion. About a day, all in the
