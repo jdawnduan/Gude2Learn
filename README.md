@@ -52,7 +52,8 @@ Ollama, pulls the two models (only when missing) and reruns the pipeline.
 ```
 
 If PowerShell refuses to run scripts: `powershell -ExecutionPolicy Bypass -File .\setup.ps1`.
-Apple Silicon: `VISION_MODEL=qwen3.5:9b-mlx ./setup.sh heldout`. A smoke test of the whole chain
+Apple Silicon: the script uses `qwen3.5:9b-mlx` by itself when that build is already pulled;
+otherwise `VISION_MODEL=qwen3.5:9b-mlx ./setup.sh heldout` selects it. A smoke test of the whole chain
 on three instructions: `.\setup.ps1 -Run heldout -Limit 3` or `LIMIT=3 ./setup.sh heldout`
 (the results file is then incomplete; rerun without the limit afterwards).
 

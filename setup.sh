@@ -11,6 +11,10 @@
 set -u
 RUN="${1:-check}"
 APERTUS="hf.co/Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF"
+if [ -z "${VISION_MODEL:-}" ] && [ "$(uname -s)" = Darwin ] && [ "$(uname -m)" = arm64 ] \
+        && ollama list 2>/dev/null | awk 'NR > 1 {print $1}' | grep -qxF qwen3.5:9b-mlx; then
+    VISION_MODEL=qwen3.5:9b-mlx     # Apple Silicon with the MLX build already pulled: use it, no second download
+fi
 VISION_MODEL="${VISION_MODEL:-qwen3.5:9b}"
 LIMIT_ARGS=(); [ -n "${LIMIT:-}" ] && LIMIT_ARGS=(--limit "$LIMIT")   # expanded with ${LIMIT_ARGS[@]+...}: empty arrays are "unbound" in bash 3.2 (macOS)
 missing=0
