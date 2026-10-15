@@ -22,7 +22,7 @@ rendering. Everything runs locally on a 5 GB GPU.
 | Results file for the dev set | `results.json`; its scorer report `report.json` |
 | `results_heldout.json` for the five held-out scenes | `results_heldout.json` (produced by the one command below) |
 | One command that runs the pipeline on any folder of scenes | `uv run python run.py --data <folder> --out <file>` |
-| 1–2 page report on where Apertus had difficulty | `docs/REPORT.md` (not written yet; the material is in `attempts/README.md`) |
+| 1–2 page report on where Apertus had difficulty | `docs/REPORT.md` (the evidence behind it is in `attempts/`) |
 | Five slides (PDF) | `docs/slides.pdf` (source `docs/slides.html`) |
 | Earlier attempts, run log, raw traces of the final run | `attempts/` |
 
