@@ -7,7 +7,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "starter"))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))   # also without `uv sync` (plain python)
 from evaluate import answer_type  # noqa: E402
 
-from see_it_say_it_pick_it.pipeline import FALLBACK_QUESTION, aside_pixel, check, humanize, resolve, scene_table, to_answer  # noqa: E402
+from see_it_say_it_pick_it import pipeline  # noqa: E402
+from see_it_say_it_pick_it.pipeline import FALLBACK_QUESTION, check, humanize, resolve, scene_table, to_answer  # noqa: E402
 
 SEEN = {"objects": [
     {"name": "red_gear", "bbox": [500, 500, 600, 600], "on_top_of": None},
@@ -107,12 +108,7 @@ def check_answer(objs):
     ans = to_answer('{"actions": [{"pick": "yellow_gear", "place": "none"}, {"pick": "red_gear_2", "place": "grey_tray"}]}', objs, "x")
     assert [(a["action"], a["object"]) for a in ans["actions"]] == \
         [("pick", "yellow_gear"), ("place", "table"), ("pick", "red_gear_2"), ("place", "grey_tray")]
-    # the set-aside spot is bare table: inside the photo and inside no box
-    aside = aside_pixel(objs, 2448, 2048)
-    assert 0 <= aside[0] < 2448 and 0 <= aside[1] < 2048
-    assert not any(o["bbox"][0] <= aside[0] <= o["bbox"][2] and o["bbox"][1] <= aside[1] <= o["bbox"][3] for o in objs)
-    ans = to_answer('{"actions": [{"pick": "yellow_gear", "place": "none"}, {"pick": "red_gear_2", "place": "grey_tray"}]}', objs, "x", aside)
-    assert ans["actions"][1] == {"action": "place", "object": "table", "pixel": aside}
+    assert "pixel" not in ans["actions"][1]   # a set-aside carries no pixel on purpose (see to_answer)
     # two targets each carrying something: one message names both tops (one at a time made Apertus alternate)
     stacks = scene_table({"objects": [{"name": "red_gear", "bbox": [100, 450, 160, 510], "on_top_of": None},
                                       {"name": "red_cube", "bbox": [110, 460, 150, 500], "on_top_of": "red_gear"},
@@ -126,6 +122,19 @@ def check_answer(objs):
     assert not check(to_answer('{"actions": [{"pick": "red_cube", "place": "none"}, {"pick": "yellow_gear", "place": "none"}, '
                                '{"pick": "red_gear_1", "place": "grey_tray"}, {"pick": "red_gear_2", "place": "grey_tray"}]}',
                                stacks, "x"), hints, stacks)
+    # a top object that the instruction moves anyway goes straight to the destination, and a chain (cube on gear on gear)
+    # is walked to its top
+    hints = resolve("put everything in the grey tray", stacks)
+    issues = check(to_answer('{"actions": [{"pick": "red_gear_1", "place": "grey_tray"}, {"pick": "red_gear_2", "place": "grey_tray"}]}',
+                             stacks, "x"), hints, stacks)
+    assert any("pick red_cube, place grey_tray; pick yellow_gear, place grey_tray" in i for i in issues)
+    chain = scene_table({"objects": [{"name": "red_gear", "bbox": [100, 450, 160, 510], "on_top_of": None},
+                                     {"name": "yellow_gear", "bbox": [110, 460, 150, 500], "on_top_of": "red_gear"},
+                                     {"name": "red_cube", "bbox": [115, 465, 145, 495], "on_top_of": "yellow_gear"},
+                                     {"name": "grey_tray", "bbox": [50, 50, 500, 300], "on_top_of": None}]}, 1000, 1000)
+    hints = resolve("pick up the red gear", chain)
+    issues = check(to_answer('{"actions": [{"pick": "red_gear", "place": "none"}]}', chain, "x"), hints, chain)
+    assert any("pick red_cube, place none; pick yellow_gear, place none" in i for i in issues)
     ans = to_answer('{"actions": [{"refuse": "no blue cube"}]}', objs, "x")
     assert ans["target_pixel"] is None and answer_type(ans) == ("refuse", None)
     ans = to_answer('{"actions": [{"pick": "grey_tray", "place": "plate"}]}', objs, "x")  # unpickable -> fallback
@@ -211,13 +220,49 @@ def check_answer(objs):
     assert any("three moves" in i for i in check(to_answer(short, objs, "x"), hints, objs))
 
 
-def test_pipeline():
-    """The one test pytest collects (`uv run pytest`); `python tests/test_pipeline.py` runs it too."""
-    objs = check_table()
-    check_resolve(objs)
-    check_answer(objs)
+def test_table():
+    check_table()
+
+
+def test_resolve():
+    check_resolve(check_table())
+
+
+def test_answer():
+    check_answer(check_table())
+
+
+def test_end_to_end(tmp_path=None, monkeypatch=None):
+    """main() on two dev instructions with Ollama stubbed: the cached vision replies of scene_01 stand in for the vision
+    model and a fixed plan for Apertus. Checks the files main() writes and that the answers are schema-valid plans."""
+    import json, tempfile
+    repo = Path(__file__).resolve().parents[1]
+    seen = json.load(open(repo / "attempts" / "final_dev.scenes.json", encoding="utf-8"))["scene_01"]
+
+    def fake_chat(base_url, model, prompt, *, image_b64=None, schema=None, think=None, timeout=0):
+        if image_b64:
+            return seen["raw"] if "List every object" in prompt else seen["layout"]
+        return '{"actions": [{"pick": "red_cube", "place": "none"}]}'
+    out_dir = Path(tempfile.mkdtemp()) if tmp_path is None else tmp_path
+    out = out_dir / "r.json"
+    old_chat, old_argv = pipeline.ollama_chat, sys.argv
+    pipeline.ollama_chat = fake_chat
+    sys.argv = ["run.py", "--data", str(repo / "dataset"), "--out", str(out), "--limit", "2"]
+    try:
+        pipeline.main()
+    finally:
+        pipeline.ollama_chat, sys.argv = old_chat, old_argv
+    res = json.load(open(out, encoding="utf-8"))["results"]
+    assert [r["instruction_id"] for r in res] == ["scene_01_i1", "scene_01_i2"]
+    assert all(answer_type(r)[0] == "plan" and r["actions"][0]["object"] == "red_cube" for r in res)
+    assert out.with_suffix(".scenes.json").exists() and out.with_suffix(".raw.jsonl").exists()
+    trace = [json.loads(l) for l in open(out.with_suffix(".raw.jsonl"), encoding="utf-8")]
+    assert trace[1]["check"] and "yellow_gear" in trace[1]["check"][0]   # "pick up the yellow gear" answered with the cube: challenged
 
 
 if __name__ == "__main__":
-    test_pipeline()
+    test_table()
+    test_resolve()
+    test_answer()
+    test_end_to_end()
     print("ok")

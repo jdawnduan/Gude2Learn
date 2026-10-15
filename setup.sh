@@ -12,7 +12,7 @@ set -u
 RUN="${1:-check}"
 APERTUS="hf.co/Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF"
 VISION_MODEL="${VISION_MODEL:-qwen3.5:9b}"
-LIMIT_ARGS=(); [ -n "${LIMIT:-}" ] && LIMIT_ARGS=(--limit "$LIMIT")
+LIMIT_ARGS=(); [ -n "${LIMIT:-}" ] && LIMIT_ARGS=(--limit "$LIMIT")   # expanded with ${LIMIT_ARGS[@]+...}: empty arrays are "unbound" in bash 3.2 (macOS)
 missing=0
 
 step() { printf '\n== %s\n' "$1"; }
@@ -73,12 +73,12 @@ done
 
 if [ "$RUN" = dev ] || [ "$RUN" = all ]; then
     step "Dev set: 10 scenes, 50 instructions (~25 min on a 5 GB GPU)"
-    uv run python run.py --data dataset --out results.json --vision-model "$VISION_MODEL" "${LIMIT_ARGS[@]}" || exit 1
+    uv run python run.py --data dataset --out results.json --vision-model "$VISION_MODEL" ${LIMIT_ARGS[@]+"${LIMIT_ARGS[@]}"} || exit 1
     uv run python starter/evaluate.py results.json --data dataset --report report.json
 fi
 if [ "$RUN" = heldout ] || [ "$RUN" = all ]; then
     step "Held-out set: 5 scenes, 40 instructions (~20 min)"
-    uv run python run.py --data heldout --out results_heldout.json --vision-model "$VISION_MODEL" "${LIMIT_ARGS[@]}" || exit 1
+    uv run python run.py --data heldout --out results_heldout.json --vision-model "$VISION_MODEL" ${LIMIT_ARGS[@]+"${LIMIT_ARGS[@]}"} || exit 1
     echo "   results_heldout.json written (no local scoring: the held-out answers are not published)"
 fi
 printf '\nDone.\n'

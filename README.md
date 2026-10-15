@@ -150,7 +150,10 @@ scene_09_i3 "pick up the object lying on the grey part", asked instead of planne
 is the same: in those runs the vision model drew the grey part and the small white part as one
 box, so the table held no "grey part" and the resolver reported it as missing. The committed run
 is the one of four where the two parts were drawn separately. Vision boxes otherwise agree within
-a few pixels across machines (13 of 15 scene tables identical in names, stacks and trays). The
+a few pixels across machines (13 of 15 scene tables identical in names, stacks and trays); the
+exceptions are the part labels of scene_09 and scene_10, the banana pixel of scene_05 (227 px
+apart between the Linux box and the committed run, both on the banana) and, on the box, an extra
+set-aside in the scene_06_i2 plan and a different stacking reading in held_05. The
 fix, made on 15 October after this comparison, lets a part phrase fall back to the parts the
 camera did see also when the phrase is a reference, as it already did for the thing to pick;
 re-rendering the fresh Windows tables with that rule gives 65.0, and the committed answers are
@@ -203,9 +206,12 @@ text-only GGUF has no image path.
    round catches a correction that went too far, such as a refusal where the first round asked for
    a reordered plan. The last reply stands even if it still contradicts a hint.
 6. **Render** (Python, no model): a "place none" that is followed by another pick is a set-aside
-   and is written as a place on the table (the organisers' reference plans say "place aside"),
-   with the pixel of the bare-table spot farthest from every box, so a one-object gripper never
-   gets two picks in a row.
+   and is written as a place on the table (the organisers' reference plans say "place aside"), so
+   a one-object gripper never gets two picks in a row. That step carries no pixel, on purpose: the
+   two trays cover most of the table in every scene, so a bare spot with room around it rarely
+   exists (none at all in 10 of 15 scenes at a 120 px clearance), and where one seems to, a colour
+   test cannot tell table from a tray the vision model missed. A pixel the robot cannot trust is
+   worse than none; choosing the spot is left to the executor.
    In a question or a refusal reason, every internal name is shown as a description a person can
    act on, built from the same geometry: "Which red gear should I pick up: the leftmost red gear
    (red_gear_1), the middle red gear (red_gear_2), or the rightmost red gear (red_gear_3)?" The
@@ -231,16 +237,23 @@ the instruction text.
   table" step for a set-aside. But the hints state the resolved object and the applicable rule in
   words, and the self-check messages name the required correction, sometimes the whole plan.
   Measured on the final traces: Apertus's first replies alone (no self-check) score 50.4 of 65 on
-  the dev set; the self-check rounds, which fired on 8 of the 50 instructions, add the rest.
-  Without hints and checks the same model scores 20.4. The pipeline is a small text model kept on
-  the rails by deterministic code, not an 8B model that understands the workcell on its own.
+  the dev set, and on the held-out set 35 of 40 first replies already have the right answer type;
+  the self-check rounds, which fired on 8 of the 50 dev instructions, add the rest. Measured
+  ablations of the final prompt on the dev set (scorer reports in `attempts/`): without the
+  self-check 50.4 (the first replies, as expected); without the hints, and so without the checks
+  that depend on them, 48.8 (relative instructions 71%, both ambiguous ones planned). The day-one
+  plain prompt scored 20.4, so most of the gain over that comes from the decision order and the
+  abstract answer forms, and the last 15 points from hints plus checks. The pipeline is a small
+  text model kept on the rails by deterministic code, not an 8B model that understands the
+  workcell on its own.
 - **Three held-out first picks changed under the 15 October rules** (held_02_i3, held_02_i4,
   held_04_i4), so three held-out target pixels are a direct consequence of rules written with the
-  held-out text and photos in view. The test file and one comment still contain held-out-style
-  sentences as examples.
+  held-out text and photos in view. Held-out-style wording also appears as examples in the
+  prompt's synonym line, in a few code comments, in the tests and in the run log.
 - **The committed answers are a `--reuse` re-render, not one fresh end-to-end run.** After the
   15 October review fixes, 31 of the 90 instructions were re-asked and the other replies were
-  replayed from the previous traces (the prompt header was unchanged, so they are valid). The
+  replayed from the previous traces; later passes re-asked a few more each time a check message
+  changed (the trace records the prompt hash, so a prompt edit would invalidate a replay). The
   organisers' re-run will be fresh; see the nondeterminism note in step 4.
 - **Weights:** a community 4-bit GGUF of swiss-ai's Apertus v1.5 8B (text only) and Ollama's
   build of Qwen 3.5 9B, both unmodified; see step 3 above.

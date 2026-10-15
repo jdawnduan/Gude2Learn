@@ -793,11 +793,7 @@
         },
         {
           "action": "place",
-          "object": "table",
-          "pixel": [
-            104,
-            1936
-          ]
+          "object": "table"
         },
         {
           "action": "pick",
@@ -919,11 +915,7 @@
         },
         {
           "action": "place",
-          "object": "table",
-          "pixel": [
-            104,
-            1936
-          ]
+          "object": "table"
         },
         {
           "action": "pick",
@@ -1037,11 +1029,7 @@
         },
         {
           "action": "place",
-          "object": "table",
-          "pixel": [
-            104,
-            1936
-          ]
+          "object": "table"
         },
         {
           "action": "pick",

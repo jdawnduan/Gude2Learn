@@ -11,6 +11,7 @@ What is in this folder:
 | `2026-10-15_linux_box_10f78ac.report.json`, `2026-10-15_linux_box_7ee7b05.report.json` | scorer reports of two reruns on a Linux aarch64 box (review-fix code and second-pass code), 63.4/65 each, identical answers (see the nondeterminism note) |
 | `2026-10-15_win11_fresh_922f1a1.report.json` | a second full run on the Windows box with no cache (vision and Apertus from scratch), 63.4/65: same flipped answer as the Linux box, same cause |
 | `2026-10-15_win11_fresh_part_fallback.report.json` | the same fresh Windows tables re-rendered after the part-reference fallback, 65.0/65 |
+| `2026-10-15_ablation_no_hints.report.json`, `2026-10-15_ablation_no_check.report.json` | ablations of the final prompt on the dev set (committed vision tables): `--no-hints` 48.8/65 (relative 71%, ambiguous 0%), `--no-check` 50.4/65 (= the first replies) |
 | `../report.json` | scorer report of the final dev-set run, 65.0/65 |
 | `../results.json`, `../results_heldout.json` | the submitted answers |
 
@@ -28,7 +29,7 @@ vision model, temperature 0, schema-constrained decoding.
 | 14.10 | Win11 | decision-order prompt, reference hints, pick/place schema, layout pass, pixel refinement | 21/40 | 13.8 | 17/40 | 32.2 |
 | 14.10 | Win11 | + abstract answer forms instead of examples, + one self-check round | 36/40 | 23.4 | 1/40 | 54.9 |
 | 14.10 | Win11 | + stacking/no-clue/under checks, pronoun hint, part-label fallback, vision prompt for parts | 38/40 | 26.3 | 1/40 | 59.6 |
-| 14.10 | Win11 | + "no clue" refusals steered to a question, pronoun-object rule ("take it off the gear") | 38/40 | 29.2 | 1/40 | 62.5 |
+| 14.10 | Win11 | + "no clue" refusals steered to a question, pronoun-object rule ("move it off the X": the target is only "it") | 38/40 | 29.2 | 1/40 | 62.5 |
 | 15.10 | Win11 | questions and reasons rendered with object descriptions; wrong "not there" reasons re-checked | 38/40 | 29.2 | 1/40 | 62.5 |
 | 15.10 | Win11 | machine parts: layout pass asks for them, fragments merged, relabelled by size; size words bound to their own phrase; "put X under Y" plan check; two self-check rounds; fixed seed | 40/40 | 30.0 | 0/40 | **65.0** |
 | 15.10 | Linux aarch64 (2nd box) | reproduction of the final code from a fresh clone (`./setup.sh dev`, Ollama 0.40.4, 638 s): scene_09_i3 "pick up the object lying on the grey part" asked instead of planned, the other 49 answers identical | 39/40 | 29.2 | 1/40 | 63.4 |
@@ -38,6 +39,12 @@ vision model, temperature 0, schema-constrained decoding.
 | 15.10 | Linux aarch64 (2nd box) | third run there, second-pass code (7ee7b05): identical to the previous box run, answer for answer | 39/40 | 29.2 | 1/40 | 63.4 |
 | 15.10 | Win11 | fresh full run with no cache on this box (vision and Apertus from scratch, 1623 s dev, 1011 s held-out): scene_09_i3 asked instead of planned, because the vision model drew the grey part and the small part as one box; 13 of 15 tables otherwise identical to the committed ones | 39/40 | 29.2 | 1/40 | 63.4 |
 | 15.10 | Win11 | part-reference fallback: a part phrase with no matching label falls back to the parts seen also as a reference ("lying on the grey part"), not only as the thing to pick; the fresh Windows tables re-rendered with it (one re-ask); committed answers unchanged | 40/40 | 30.0 | 0/40 | 65.0 (fresh tables) |
+| 15.10 | Win11 | third review pass: the stacking check walks a chain to its top and lets a top object that the instruction moves go straight to the destination (held_05_i8 lost its redundant set-aside; two re-asks); the set-aside step carries no pixel after a measured attempt showed no verifiable bare-table spot in most scenes; prompt hash in every trace record so `--reuse` cannot replay a stale prompt; corrupt cache or trace files named instead of a traceback; setup-script fixes for bash 3.2 and PowerShell 5.1; tests split into named cases plus a stubbed end-to-end run of `main()` | 40/40 | 30.0 | 0/40 | **65.0** |
+
+Ablations (same vision tables, final prompt, dev set): `--no-check` 50.4, which equals the first-reply score;
+`--no-hints` (which also disables the checks, since they test against the hints) 48.8, with relative at
+71% and both ambiguous instructions planned. The day-one plain prompt scored 20.4, so the decision-order
+prompt and the abstract answer forms account for most of the gain and hints plus checks for the last 15.
 
 Held-out set (`results_heldout.json`, 40 instructions, category labels only): 32 of 32 plan
 instructions answered with a plan, 8 of 8 no-plan instructions with the right type (we computed this
@@ -100,10 +107,13 @@ fixes (31 of 90 re-asked).
 7. Wrong reasons on right decisions: "NOT THERE: the red gear is in the list, so it is there" for a
    self-contradictory instruction; it needs the real reason quoted to state it. Even quoted, the rule
    label can stay wrong ("NOT THERE: ... nothing fits inside it: impossible (rule 3)" after three rounds).
-8. It drops moves in longer plans: "put everything except the plate in the grey tray" with the grey part
-   lying on the red gear: the part is set aside and never put in the tray; "put both red gears in the
-   grey tray" with the yellow gear on one of them: the yellow gear is never moved. Told which object never
-   reaches the destination, it adds the move.
+8. It drops moves in longer plans: "everything but the plate into the tray" with the grey part lying on
+   the red gear: the part is set aside and never put in the tray; "both red gears into the tray" with the
+   yellow gear on one of them: the yellow gear is never moved. Told which object never reaches the
+   destination, it adds the move; told that a top object may go straight to the destination, it still
+   sometimes sets it aside first (one move too many).
+9. Not handled in one round: a chain three objects high (A on B on C). The check now walks the chain, but
+   no scene in either set has one, so this is untested on the model.
 
 ## Vision model limits (qwen3.5 9B at 1024 px)
 

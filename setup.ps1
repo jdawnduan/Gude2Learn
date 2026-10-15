@@ -43,7 +43,10 @@ if (Get-Command uv -ErrorAction SilentlyContinue) {
 '@
 }
 if (Get-Command ollama -ErrorAction SilentlyContinue) {
-    Ok "ollama $(ollama --version 2>$null)"
+    # `ollama --version` writes a warning to stderr when the server is not running; under $ErrorActionPreference = 'Stop'
+    # a stderr redirect would turn that into a terminating error, so it is read without one and failures are tolerated
+    $v = try { (ollama --version | Select-Object -First 1) } catch { 'installed' }
+    Ok "ollama $v"
 } else {
     Fail 'ollama (serves both models locally)'
     Write-Host @'

@@ -23,7 +23,7 @@ instruction, the material for the "where Apertus had difficulty" report).
 """
 from __future__ import annotations
 
-import argparse, json, math, re, sys, time, urllib.error, urllib.request
+import argparse, hashlib, json, math, re, sys, time, urllib.error, urllib.request
 from pathlib import Path
 
 import cv2
@@ -44,6 +44,8 @@ CONTAINERS = ("grey_tray", "black_tray", "plate", "saucer")   # things lie "in" 
 UNPICKABLE = ("grey_tray", "black_tray", "plate", "saucer", "hand")
 PICKABLE = [n for n in NAMES if n not in UNPICKABLE]
 DESTINATIONS = ("grey_tray", "black_tray", "plate")            # always offered as a place, even if the camera missed one
+PARTS = ("grey_part", "white_part", "small_part")              # the three machine parts, which the vision model confuses
+ASIDE = "table"   # where a set-aside object is put down: "place none" before another pick becomes place on the table
 FALLBACK_QUESTION = "Could you repeat the instruction?"
 
 SEE_PROMPT = """This photo shows a table seen from above by a robot's camera. List every object you can see.
@@ -106,6 +108,8 @@ CHECK_ROUNDS = 3   # self-check rounds at most; the last reply stands even if it
 CHECK_PROMPT = """Check your answer against the facts above before it is sent to the robot:
 {issues}
 Answer again with exactly one JSON object and nothing else."""
+# written into every raw trace record: --reuse replays a logged reply only when the prompt text is unchanged
+PROMPT_HASH = hashlib.sha1((PLAN_PROMPT + CHECK_PROMPT).encode()).hexdigest()[:10]
 
 LAYOUT_PROMPT = """Same photo: a table seen from above by a robot's camera. Three questions.
 
@@ -169,7 +173,8 @@ def ollama_chat(base_url: str, model: str, prompt: str | list[dict], *, image_b6
     else:
         messages = prompt
     body = {"model": model, "messages": messages, "stream": False,
-            "options": {"temperature": 0, "seed": 0, "num_predict": 1500}}   # seed: reruns repeat the same answers
+            "options": {"temperature": 0, "seed": 0, "num_predict": 1500}}   # seed: reruns repeat the same answers;
+    # 1500 tokens: the vision object list of a cluttered scene is ~600 tokens, a plan under 150; a cap stops a runaway
     if schema is not None:
         body["format"] = schema
     if think is not None:
@@ -181,7 +186,7 @@ def ollama_chat(base_url: str, model: str, prompt: str | list[dict], *, image_b6
 
 
 # ----------------------------------------------------------------------------- scene table
-CACHE_VERSION = 9   # bump when scene_table, refine_pixel or aside_pixel changes, so an old results.scenes.json is rebuilt from its vision replies
+CACHE_VERSION = 11   # bump when scene_table or refine_pixel changes, so an old results.scenes.json is rebuilt, so an old results.scenes.json is rebuilt from its vision replies
 WORDS = {n: n.replace("_", " ") for n in NAMES} | {"small_part": "small white part"}   # internal name -> words
 
 
@@ -295,7 +300,6 @@ def scene_table(seen: dict, w: int, h: int, layout: dict | None = None) -> list[
     return objs
 
 
-PARTS = ("grey_part", "white_part", "small_part")
 # long side of the box in a 2448 px wide photo: small white module ~330, grey metal plate 470-545 (440 when partly
 # covered by a cube), white plate ~650
 PART_LONG_SIDE = {"white_part": 600, "grey_part": 390}
@@ -598,10 +602,11 @@ def resolve(text: str, objs: list[dict]) -> list[str]:
         mm = re.search(pattern, t)
         if not mm:
             return None
+        # the mention must start within 6 characters of the cue: room for "the " or "a " and a space, nothing more
         return next((m for m in others if m["start"] >= mm.end() - 1 and m["start"] - mm.end() <= 6), None)
 
     cue = None
-    # container mentions after the head: "from the black tray" / "that is on the plate" / "at the top of the grey tray"
+    # container mentions after the head: "from the black tray" / "that is on the plate" / "at the top of the tray"
     # narrow the candidates; with a put-verb a bare "in / on / to the <container>" is the destination instead
     # ("put the fruit on the plate" moves the fruit, it does not look for fruit that is on the plate)
     put = re.match(r"\s*(please )?(put|place|move|set|lay|bring|transfer)\b", t)
@@ -626,7 +631,7 @@ def resolve(text: str, objs: list[dict]) -> list[str]:
         inside = [o for o in cands if o["in_tray"] in {c["name"] for c in m2["cands"]} or o["on_top_of"] in {c["name"] for c in m2["cands"]}]
         if inside:
             cands, cue = inside, f"in/on {m2['phrase']}"
-            if d and len(cands) > 1:   # "at the top of the grey tray": the one nearest that edge of the container
+            if d and len(cands) > 1:   # "at the top of the tray": the one nearest that edge of the container
                 c0 = m2["cands"][0]
                 key = {"top": lambda o: o["centre"][1], "bottom": lambda o: -o["centre"][1], "left": lambda o: o["centre"][0],
                        "right": lambda o: -o["centre"][0]}.get(d, lambda o: _dist(o, c0))
@@ -676,6 +681,8 @@ def resolve(text: str, objs: list[dict]) -> list[str]:
         anchor = m2["cands"][0]  # "the mug" is usually unique
 
         def side(o):
+            # "left of X": to the left and not mostly above or below it (the sideways offset at least half the
+            # vertical one, i.e. within about 63 degrees of the axis), so a diagonal neighbour still counts
             du, dv = o["centre"][0] - anchor["centre"][0], o["centre"][1] - anchor["centre"][1]
             return {"left": du < 0 and abs(du) >= abs(dv) * 0.5, "right": du > 0 and abs(du) >= abs(dv) * 0.5,
                     "above": dv < 0 and abs(dv) >= abs(du) * 0.5, "below": dv > 0 and abs(dv) >= abs(du) * 0.5}[d]
@@ -686,7 +693,7 @@ def resolve(text: str, objs: list[dict]) -> list[str]:
     # a size word directly before the head phrase ("the big red gear"); one elsewhere belongs to the phrase it stands in
     # front of ("the red gears and the little yellow gear")
     sm = next((m for m in re.finditer(r"\b(big|bigger|biggest|large|larger|largest|small|smaller|smallest|little|tiny)\b", t)
-               if 0 <= head["start"] - m.end() <= 12), None)
+               if 0 <= head["start"] - m.end() <= 12), None)   # within 12 characters: "the big red gear", "a small white part"
     if sm and len(cands) > 1:
         area = lambda o: o["size"][0] * o["size"][1]
         best = max(cands, key=area) if sm.group(1)[0] in "bl" else min(cands, key=area)
@@ -816,18 +823,28 @@ def check(ans: dict, hints: list[str], objs: list[dict]) -> list[str]:
         wrong = [p for p in picked if p in excluded and p not in aside]
         if wrong:
             issues.append(f"The instruction says except {', '.join(wrong)}: {', '.join(wrong)} stays where it is. Remove that move.")
+        dh = next((h for h in hints if h.startswith("Destination ")), None)
+        dest = dh.split(" = ")[1].split(":")[0].strip() if dh else None
         # every object that is still lying on a picked object at the time of the pick, in one message: reporting one
-        # stack at a time made Apertus alternate between two corrections when two targets each carry something
+        # stack at a time made Apertus alternate between two corrections when two targets each carry something.
+        # A stack is walked to its top (A on B on C: A first, then B). A top object that the instruction moves
+        # anyway goes straight to the destination instead of being set aside.
+
+        def tops_of(p, seen):
+            out = []
+            for t in by_name.get(p, {}).get("supports") or []:
+                if t not in seen:
+                    seen.add(t)
+                    out += tops_of(t, seen) + [t]
+            return out
         unmoved = []
         for i, p in enumerate(picked):
-            unmoved += [(t, p) for t in (by_name.get(p, {}).get("supports") or [])
-                        if t not in picked[:i] and t not in {u for u, _ in unmoved}]
+            unmoved += [(t, p) for t in tops_of(p, set()) if t not in picked[:i] and t not in {u for u, _ in unmoved}]
         if unmoved:
             why = " and ".join(f"{t} lies on top of {p}" for t, p in unmoved)
-            firsts = "; ".join(f"pick {t}, place none" for t, _ in unmoved)
-            issues.append(f"{why}: the plan must start with {firsts} (set aside, all of them, in this one plan), and then "
-                          f"continue with the moves you planned. This is a plan, not a refusal.")
-        dh = next((h for h in hints if h.startswith("Destination ")), None)
+            firsts = "; ".join(f"pick {t}, place {dest}" if dest and t in moved else f"pick {t}, place none" for t, _ in unmoved)
+            issues.append(f"{why}: the plan must start with {firsts} (all of them, in this one plan; place none = set aside), "
+                          f"and then continue with the moves you planned. This is a plan, not a refusal.")
         if fm and picked and picked[0] != fm.split()[2]:
             issues.append(f"The instruction puts something under {fm.split()[2]}: {fm}")
         elif fm and one:
@@ -840,8 +857,7 @@ def check(ans: dict, hints: list[str], objs: list[dict]) -> list[str]:
                 issues.append(f"The plan must have exactly three moves, in this order: 1. pick {y}, place none (set it aside); "
                               f"2. pick {x}, place {dest}; 3. pick {y}, place {x}. Your plan leaves out the move of {x} to {dest}.")
         elif dh:
-            # "put ... on the plate": each moved object ends on the destination, not set aside or left without a place
-            dest = dh.split(" = ")[1].split(":")[0].strip()
+            # "put ... on the plate": each moved object ends on the destination, not set aside or left without a place;
             # every moved object that the plan picks must reach the destination in some move (it may be set aside first)
             lost = [p for p in dict.fromkeys(picked) if p in moved and not any(q == p and d == dest for q, d in moves)]
             if lost:
@@ -857,30 +873,15 @@ def hints_text(hints: list[str]) -> str:
 
 
 # ----------------------------------------------------------------------------- answer
-ASIDE = "table"   # where a set-aside object is put down: "place none" before another pick becomes place on the table
-
-
-def aside_pixel(objs: list[dict], w: int, h: int, step: int = 8) -> list[int]:
-    """A free spot on the table for a set-aside object: the pixel farthest from every box (on a coarse grid; the
-    trays' boxes count as occupied, so the spot is bare table)."""
-    occ = np.ones((h // step + 1, w // step + 1), np.uint8)
-    for o in objs:
-        x1, y1, x2, y2 = o["bbox"]
-        occ[max(0, y1 // step):y2 // step + 1, max(0, x1 // step):x2 // step + 1] = 0
-    if not occ.any():
-        return [w // 2, h // 2]
-    pad = cv2.copyMakeBorder(occ, 1, 1, 1, 1, cv2.BORDER_CONSTANT, value=0)
-    dist = cv2.distanceTransform(pad, cv2.DIST_L2, 5)
-    y, x = np.unravel_index(int(np.argmax(dist)), dist.shape)
-    return [min(w - 1, (int(x) - 1) * step), min(h - 1, (int(y) - 1) * step)]
-
-
-def to_answer(reply: str, objs: list[dict], iid: str, aside: list[int] | None = None) -> dict:
+def to_answer(reply: str, objs: list[dict], iid: str) -> dict:
     """Apertus reply (steps: pick/place, ask_user, refuse) -> one schema-valid answer.
     target_pixel = a pixel on the first picked object. A "place none" that is followed by another pick is a set-aside:
     the one-object gripper must put the thing down, so it becomes place on the table (the organisers' reference plans
-    say "place aside"), at `aside` (a free table pixel) when given; a final bare pick stays a pick ("pick up the
-    cube"). Anything unparseable becomes ask_user: a schema miss scores 0 everywhere, a question at least cannot."""
+    say "place aside"). The step carries no pixel on purpose: the trays cover most of the table in every scene, so
+    a bare spot with room around it rarely exists, and where one seems to, the colour test cannot tell table from a
+    tray the vision model missed; a pixel the robot cannot trust is worse than none. A final bare pick stays a pick
+    ("pick up the cube"). Anything unparseable becomes ask_user: a schema miss scores 0 everywhere, a question at
+    least cannot."""
     by_name = {o["name"]: o for o in objs}
     ans = parse(reply) if isinstance(reply, str) else None
     steps = ans.get("actions") if isinstance(ans, dict) else None
@@ -903,7 +904,7 @@ def to_answer(reply: str, objs: list[dict], iid: str, aside: list[int] | None = 
                     a["pixel"] = by_name[d].get("pixel", by_name[d]["centre"])
                 actions.append(a)
             else:
-                actions.append({"action": "place", "object": ASIDE} | ({"pixel": list(aside)} if aside else {}))
+                actions.append({"action": "place", "object": ASIDE})
         if actions and actions[-1]["object"] == ASIDE:
             actions.pop()   # the last move was a bare pick, not a set-aside
         if actions:
@@ -957,7 +958,17 @@ def main():
     scenes = find_scenes(args.data)
     jobs = [(d, iid, text) for d in scenes for iid, _, text in load_scene_any(d).instructions][: args.limit or None]
     cache_path = args.out.with_suffix(".scenes.json")
-    cache = json.loads(cache_path.read_text()) if cache_path.exists() else {}
+    raw_path = args.out.with_suffix(".raw.jsonl")
+    try:
+        cache = json.loads(cache_path.read_text()) if cache_path.exists() else {}
+    except json.JSONDecodeError as e:
+        sys.exit(f"{cache_path} is not valid JSON ({e}). Delete it, or copy the attempts/ copy back, and run again.")
+    prev = {}
+    try:
+        if args.reuse and raw_path.exists():   # earlier replies, reused where the prompt is unchanged
+            prev = {r["instruction_id"]: r for r in (json.loads(l) for l in raw_path.read_text().splitlines() if l.strip())}
+    except (json.JSONDecodeError, KeyError) as e:
+        sys.exit(f"{raw_path} is not a valid trace ({e}). Delete it, or copy the attempts/ copy back, and run again.")
     vision_key = [args.vision_model, args.max_side]
     cache = {k: v for k, v in cache.items() if v.get("vision", vision_key) == vision_key}   # another vision model: see again
     t0 = time.time()
@@ -985,7 +996,7 @@ def main():
             for o in objs:
                 o["pixel"] = refine_pixel(sc.rgb, o["bbox"])
             cache[d.name] = {"version": CACHE_VERSION, "raw": reply, "layout": layout, "layout_v": LAYOUT_VERSION,
-                             "objects": objs, "size": [w, h], "vision": vision_key, "aside": aside_pixel(objs, w, h)}
+                             "objects": objs, "size": [w, h], "vision": vision_key}
             cache_path.write_text(json.dumps(cache, indent=1))
             print(f"[see] {d.name}: {', '.join(o['name'] + (' on ' + o['on_top_of'] if o['on_top_of'] else '') for o in objs)}")
             if not objs:
@@ -993,10 +1004,6 @@ def main():
                       f"answered against an empty table. Reply was: {reply[:200]!r}")
         # stage 2: Apertus plans from text only
         results, bad, reused = [], 0, 0
-        raw_path = args.out.with_suffix(".raw.jsonl")
-        prev = {}
-        if args.reuse and raw_path.exists():   # earlier replies, reused where the prompt is unchanged
-            prev = {r["instruction_id"]: r for r in (json.loads(l) for l in raw_path.read_text().splitlines() if l.strip())}
         with raw_path.open("w") as raw:
             for n, (d, iid, text) in enumerate(jobs, 1):
                 objs, (w, h) = cache[d.name]["objects"], cache[d.name]["size"]
@@ -1006,13 +1013,13 @@ def main():
                 prompt = PLAN_PROMPT.format(w=w, h=h, table=table_text(objs), hints=hints_text(hints), text=text)
                 schema = None if args.no_schema else plan_schema(objs)
                 old = prev.get(iid)
-                if old and old.get("scene") == table_text(objs) and old.get("hints") == hints and old.get("reply"):
+                if old and old.get("scene") == table_text(objs) and old.get("hints") == hints and old.get("reply") \
+                        and old.get("prompt", PROMPT_HASH) == PROMPT_HASH:   # a prompt edit invalidates logged replies
                     reply, reused = old["reply"], reused + 1
                 else:
                     old = None
                     reply = ollama_chat(args.base_url, args.model, prompt, schema=schema, think=True if args.think else None)
-                aside = cache[d.name].get("aside")
-                ans = to_answer(reply, objs, iid, aside)
+                ans = to_answer(reply, objs, iid)
                 # self-check, at most CHECK_ROUNDS rounds: Apertus sees its answer and the contradiction with the hints and
                 # answers again; a later round catches an answer that the first correction pushed too far (a refusal
                 # instead of the corrected plan)
@@ -1031,7 +1038,7 @@ def main():
                         reply_r = ollama_chat(args.base_url, args.model, msgs, schema=schema, think=True if args.think else None)
                     msgs.append({"role": "assistant", "content": reply_r})
                     rounds.append({"issues": issues, "reply": reply_r})
-                    ans = to_answer(reply_r, objs, iid, aside)
+                    ans = to_answer(reply_r, objs, iid)
                 issues = rounds[0]["issues"] if rounds else []
                 bad += ans["actions"][0].get("question") == FALLBACK_QUESTION
                 for a in ans["actions"]:   # what the person reads: names rendered as descriptions
@@ -1042,7 +1049,7 @@ def main():
                 results.append(ans)
                 raw.write(json.dumps({"instruction_id": iid, "instruction": text, "scene": table_text(objs), "hints": hints,
                                       "reply": reply, "check": issues, "reply2": rounds[0]["reply"] if rounds else None,
-                                      "rounds": rounds}) + "\n")
+                                      "rounds": rounds, "prompt": PROMPT_HASH}) + "\n")
                 raw.flush()
                 args.out.write_text(json.dumps({"team": args.team, "results": results}, indent=2))   # partial file survives a crash
                 print(f"[{n}/{len(jobs)}] {iid}: {answer_type(ans)[0]}{f' (after {len(rounds)} check)' if rounds else ''}  {text!r}")

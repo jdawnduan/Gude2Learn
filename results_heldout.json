@@ -689,11 +689,7 @@
         },
         {
           "action": "place",
-          "object": "table",
-          "pixel": [
-            104,
-            1936
-          ]
+          "object": "table"
         },
         {
           "action": "pick",
@@ -746,11 +742,7 @@
         },
         {
           "action": "place",
-          "object": "table",
-          "pixel": [
-            104,
-            1936
-          ]
+          "object": "table"
         },
         {
           "action": "pick",
@@ -762,11 +754,7 @@
         },
         {
           "action": "place",
-          "object": "table",
-          "pixel": [
-            104,
-            1936
-          ]
+          "object": "table"
         },
         {
           "action": "pick",
@@ -1015,22 +1003,6 @@
         1050
       ],
       "actions": [
-        {
-          "action": "pick",
-          "object": "grey_part",
-          "pixel": [
-            1975,
-            1050
-          ]
-        },
-        {
-          "action": "place",
-          "object": "table",
-          "pixel": [
-            1528,
-            232
-          ]
-        },
         {
           "action": "pick",
           "object": "grey_part",
