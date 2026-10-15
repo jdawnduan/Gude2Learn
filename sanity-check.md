@@ -215,3 +215,133 @@ Not yet disclosed: the set-aside pixel is a per-scene constant on the image bord
 and probably inside the undetected black tray in held_05, and held_04_i4 uses it twice; held_05_i8's
 redundant move; chained stacks need two rounds; the two setup-script platform bugs; the box run was
 on the previous commit.
+
+## 8. Where the missing points are, and what would earn them
+
+The organisers publish one sentence per jury criterion. To make the 16 / 20 and 4 / 5 estimates
+checkable, this section splits each criterion into sub-criteria of our own, says what the evidence
+supports today, and names the change that would earn each missing point. The split is ours, not the
+organisers'; a jury may weigh differently, but the deficits themselves are facts in the repository.
+
+### 8.1 Pipeline logic, 16 of 20
+
+The criterion asks two questions: does the vision step describe the scene correctly, and is the order
+of actions physically possible. We score the first out of 8, the second out of 8, and the quality of
+the final answer text and reasoning rules out of 4.
+
+| Sub-criterion | Points | Awarded | What costs the rest |
+|---|---|---|---|
+| Vision step describes the scene correctly | 8 | 6 | black tray missing in half the scenes; containment and stacking are box heuristics with known wrong readings |
+| Order of actions physically possible | 8 | 7 | set-aside pixel on the border band or in an undetected tray, used twice in one plan; one redundant move; chained stacks need two rounds |
+| Answer text and reasoning rules | 4 | 3 | wrong rule labels, unpickable choices offered, garbled wording; unsafe and contradiction detection by keyword |
+
+**Missing point 1: the scene table omits the black tray in 7 of 15 scenes** (scene_02, 03, 04, 05,
+held_02, 03, 05) although pixel sampling shows the tray is in every photo. The first vision pass never
+reports it and the dedicated layout question finds it only half the time. Consequences a jury can see:
+objects that sit in the black tray are listed "on the table"; "from the black tray" filters nothing
+(scene_05_i4 is right only because "everything" happened to coincide); a set-aside spot can be chosen
+inside the tray (held_05). What earns the point: detect the tray geometrically instead of asking the
+vision model. The camera is fixed and the grey tray's box is identical in all 15 scenes (1283-1295 by
+1733-1753 px), so the black tray is a dark rectangle of known size that a threshold plus contour pass
+in `scene_table` finds in milliseconds; fall back to the vision answer only when the contour is not
+found. Half a day including a cache-version bump and a `--reuse` re-render; no Apertus calls change
+unless a hint changes.
+
+**Missing point 2: containment and stacking are box-centre heuristics with known wrong readings.**
+Containment is "centre inside the container box" (252): the banana in held_02 is called "in plate"
+although its box ends 240 px below the plate's, and the grey part in held_05 is "in plate" because its
+centre is 3 px inside the plate's top edge while the same table says it lies on the red gear;
+held_05_i4 then moves it. Stacking relies on the vision model's `on_top_of` plus a 60 percent box
+overlap fallback (277-291) that missed the mug on the gear in scene_07 (37 percent overlap); the
+instruction was rescued by the "put X under Y" language rule, not by seeing. Occlusion shrinks a box
+(held_04 red_gear_1 is 264 by 340 px under the cube), so two identical gears are described as "the
+smallest one" and "the largest one" and a size word would resolve by an artefact. What earns the point:
+containment by the fraction of the object's box inside the container (not the centre), with a plate
+counted as a container only when the object's box is inside it by more than half; stacking from the
+colour-refined pixel blobs (an object's blob overlapping another's box by a third) rather than from
+raw box overlap; and suppress size descriptions when a box overlaps another object's box. Together
+about a day; everything is in `scene_table` and `describe`, unit-testable without a model.
+
+**Missing point 3: the set-aside step is not yet physically sound.** `aside_pixel` (861-873) returns
+one grid point per scene, the farthest from every detected box and the border. In 8 of 15 scenes that is
+[104, 1936], about 25 mm from the image corner in a dark band that is not table surface; in held_05 it
+is [1528, 232], most likely inside the undetected black tray; in held_04_i4 both set-asides use the same
+point, so the cube would be stacked on the yellow gear. Two smaller order faults: held_05_i8 sets the
+grey part aside and then moves it to the tray because the stacking check (825-827) always demands
+"place none" even when the top object itself is headed for the destination; and a chained stack (A on
+B on C) takes two rounds with a first message that is itself wrong, because only the supports of picked
+objects are inspected (819-827). What earns the point: require a clearance of at least half the largest
+pickable box and a margin of about 200 px from the border, prefer a spot inside the grey tray when the
+table has none, add each set-aside object's box to the occupied set so the second set-aside gets its own
+spot, and if no spot qualifies emit `place grey_tray` instead; let the check accept a top object that
+moves straight to its destination; walk the support chain recursively. The first two are an afternoon
+and need only a `--reuse` re-render plus one re-ask for held_05_i8; the chained case has no instance in
+either set and can stay a documented limit.
+
+**Missing point 4: the text the jury reads is right in substance but wrong in form too often, and the
+safety rules are lexical.** Thirteen refusals are correct decisions; two carry the wrong label
+(held_03_i8 "NOT THERE" for an impossible request, repeated identically through three check rounds;
+scene_09_i5 "unsafe" for a self-contradiction), one is garbled ("the mug, which is on the red gear
+tray", scene_07_i5), one repeats a description twice (held_04_i5), and one question offers the plate,
+saucer and tray as things to give (scene_05_i5). Unsafe and contradiction detection are regular
+expressions (495-496, 546-549): "pick up the red cube without moving the mug" is refused even when the
+mug is nowhere near the cube, "the cube under my hand" is not caught, and "drop the gear into the tray"
+is refused. What earns the point: tell Apertus the expected label in the check message when the reason
+contradicts the hint's rule ("start the reason with CANNOT"), exclude unpickables from the "no clue"
+choices (756), render reasons with the short description rather than the full one, and ground the
+contradiction rule in geometry (refuse "without moving X" only when X lies on, or holds, the target).
+One to two hours, all of it in `check` and `humanize`, then re-ask the five affected instructions with
+`--reuse`.
+
+### 8.2 Code quality, 4 of 5
+
+The criterion asks about documentation, licence, and whether someone else can run it. Documentation and
+licence are complete. The missing point is the sum of four things a reviewer who clones the repository
+meets within the first hour:
+
+1. **Someone else may not be able to run the setup script.** `setup.sh` expands an empty array under
+   `set -u` (lines 15, 76, 81), which stock macOS bash 3.2 rejects, so `./setup.sh dev` dies on a Mac
+   unless `LIMIT` is set. `setup.ps1` runs `ollama --version` with stderr redirected under a
+   stop-on-error preference (lines 20, 46), which Windows PowerShell 5.1 turns into a terminating error
+   whenever Ollama is installed but not running, the exact state the script is meant to recover from.
+   Both are one-line fixes; this is the item that most directly matches the criterion's wording.
+2. **One 1041-line module.** `resolve` is 221 lines (520-740) of sequential regex cases with `m2`
+   rebound five times; `check` 106, `main` 124, `scene_table` 95; `PARTS` and `ASIDE` are used before
+   they are defined; the box-area expression appears eight times; `by_name` is rebuilt in five
+   functions; thresholds at 599, 678-679, 687 and 172 are unexplained. Splitting into `see.py` (vision
+   and table), `resolve.py`, `plan.py` (prompt, schema, check) and `render.py`, with a small dataclass
+   for an object, is a mechanical half day and makes the jury's reading of the pipeline far easier.
+3. **Failure modes that give a traceback instead of a message.** A corrupt `.scenes.json` or
+   `.raw.jsonl` raises a bare JSON error (936, 975); `aside_pixel` has no box clipping and its fallback
+   can land inside a box (866-869); `--reuse` keys on table and hints only (985), so a prompt-header
+   edit silently replays stale replies, and it reads the git-ignored root trace file without the README
+   saying to copy the `attempts/` files back first. Each is a few lines.
+4. **Tests are one monolithic pytest case.** `pytest` collects a single test that wraps three check
+   functions, so a failure does not say which rule broke; `refine_pixel`, `aside_pixel` edge cases, the
+   schema builder, the cache key and the round loop are untested, and there is no end-to-end test with a
+   stubbed Ollama. Splitting the existing assertions into named tests is an hour; a stub that returns
+   canned replies for two instructions would let CI exercise `main` without a model.
+
+### 8.3 Missing altogether
+
+These are not deductions above but gaps a jury may ask about, roughly in order of what they would add:
+
+- **No measured ablation.** `--no-hints`, `--no-check` and `--think` exist, and the report says "we
+  expect most of the relative-instruction gain to vanish without hints". Three dev-set runs of about 25
+  minutes each would replace the expectation with numbers and make the 50.4 to 65.0 story complete.
+- **No held-out first-reply figure.** The dev set has it (50.4); the held-out traces give 35 of 40
+  right answer types before the checks. It is one sentence.
+- **No out-of-distribution check.** The resolver is regex-driven and was extended on both published
+  sets. Ten new instructions written by the team in fresh wording ("the thing next to the cup", "the
+  gear nearest the camera"), run once and inspected, would show what happens when a phrase is outside
+  the synonym list: Apertus alone, at first-reply quality. Honest either way, and the jury can run it.
+- **No geometric self-check of the vision table.** The camera is fixed, so every object has a known
+  pixel size; a table entry whose box is far outside its class range (a 190 px "red gear", a 760 px
+  "white part") could be flagged or dropped before Apertus sees it, the same idea that already fixes
+  the three machine parts.
+- **No pixel on the `place table` step until this commit, and now a doubtful one.** A place step whose
+  pixel the robot cannot use is worse than none; see missing point 3.
+- **Chained stacks** (three objects high) are not handled in one round; no scene has one, so a note in
+  the report suffices.
+- **The second-machine run is of the previous commit.** A rerun at `922f1a1` would close the only
+  remaining provenance gap.
