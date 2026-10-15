@@ -54,12 +54,15 @@ uv run python starter/evaluate.py results.json --data dataset
 ### How `run.py` works
 
 1. **See** (vision model, twice per scene, cached in `results.scenes.json`): one call lists every
-   object with a box; a second call asks only which objects lie on top of which and where the trays
-   are, because the first pass tends to miss the flat black tray and the stacking.
-2. **Table** (Python, no model): boxes become full-resolution pixels, duplicates are numbered left to
-   right (`red_gear_1`, `red_gear_2`), each object gets the tray or plate it lies in and what it lies
-   on. The target pixel is moved from the box centre onto the object's own pixels (the centre of a
-   banana's box is table), by colour against the box border.
+   object with a box; a second call asks only which objects lie on top of which, where the trays
+   are and where the machine parts are, because the first pass tends to miss the flat black tray,
+   the stacking and the small white module.
+2. **Table** (Python, no model): boxes become full-resolution pixels, duplicates are numbered in
+   reading order (`red_gear_1`, `red_gear_2`), each object gets the tray or plate it lies in and
+   what it lies on. The three machine parts, which the vision model confuses, are relabelled by the
+   long side of their box (the camera is fixed, so pixel size is physical size), after merging
+   touching fragments. The target pixel is moved from the box centre onto the object's own pixels
+   (the centre of a banana's box is table), by colour against the box border.
 3. **Resolve** (Python, no model): the instruction's noun phrases are mapped to the table with a small
    synonym list (fruit, cube, part, the yellow one) and the spatial cues (left, closest to, second from
    the right, in the grey tray, with nothing on it, lying on, under) are evaluated against the
@@ -70,10 +73,11 @@ uv run python starter/evaluate.py results.json --data dataset
    schema-constrained to pick/place steps over the names in this scene, or one question, or one
    refusal; Python expands the steps into the submission format. Apertus makes every decision; the
    hints only save it from doing geometry.
-5. **Self-check** (Apertus, only when needed): if the answer contradicts a fact in the hints (asks
-   although one object matches, refuses an object that is listed, plans an unsafe verb, picks the
-   bottom object of a stack first), Apertus sees its own answer and the contradiction and answers
-   once more.
+5. **Self-check** (Apertus, only when needed, at most twice): if the answer contradicts a fact in
+   the hints (asks although one object matches, refuses an object that is listed, plans an unsafe
+   verb, picks the bottom object of a stack first), Apertus sees its own answer and the
+   contradiction and answers once more. A second round catches a correction that went too far,
+   such as a refusal where the first round asked for a reordered plan.
 6. **Render** (Python, no model): in a question or a refusal reason, every internal name is shown
    as a description a person can act on, built from the same geometry: "Which red gear: the red gear
    on the left, in the grey tray (red_gear_1), or the red gear in the centre, with the yellow gear on
@@ -83,7 +87,11 @@ Both models do not fit in memory at once; the two stages run one after the other
 once. Close VMs and Teams first: with less than ~4 GB free the vision stage takes minutes per scene.
 `--no-hints` runs the ablation without step 3, `--think` lets Apertus reason before answering,
 `--limit N` runs the first N instructions, and `results.raw.jsonl` keeps the table, hints and raw
-reply per instruction for the report.
+reply per instruction for the report. `--reuse` takes the replies from that log again wherever the
+table and the hints are unchanged, so a change that only affects rendering or the self-check
+re-runs in seconds instead of minutes. Decoding is pinned (temperature 0, fixed seed), but Ollama
+with a partly CPU-offloaded model is not bit-for-bit repeatable, so two full runs can differ in a
+single answer.
 
 `baseline/baseline.py` (Apertus alone, reading the photo) cannot run on this build: the text-only GGUF
 has no image path and Ollama answers HTTP 500 to the image part. The held-out scenes:

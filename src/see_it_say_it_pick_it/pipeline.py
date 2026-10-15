@@ -48,8 +48,9 @@ FALLBACK_QUESTION = "Could you repeat the instruction?"
 
 SEE_PROMPT = """This photo shows a table seen from above by a robot's camera. List every object you can see.
 Possible objects: red gear (up to three of them), yellow gear, red cube, mug, mandarin, banana, plate, saucer,
-grey metal part (up to two, dark grey machined metal blocks), white part (a white plastic machine part), small white part
-(a small white plastic piece, much smaller than the other parts), grey tray, black tray, and a person's hand.
+grey metal part (up to two: an oblong flat grey metal plate with a round hole in the middle), white part (a large white
+plastic plate, slightly curved), small white part (a small white electronic module with a blue connector, about the size
+of a gear), grey tray, black tray, and a person's hand.
 The trays are large flat rectangles: the grey tray is light grey, the black tray is dark grey or black and may
 fill a large part of the photo. List a tray too, with its full box.
 
@@ -105,29 +106,38 @@ CHECK_PROMPT = """Check your answer against the facts above before it is sent to
 {issues}
 Answer again with exactly one JSON object and nothing else."""
 
-LAYOUT_PROMPT = """Same photo: a table seen from above by a robot's camera. Two questions.
+LAYOUT_PROMPT = """Same photo: a table seen from above by a robot's camera. Three questions.
 
 1. Which objects lie ON TOP OF another object? Typical cases: a gear lying on another gear, a red cube lying on one or two
    red gears, a red cube lying on a grey metal part, a gear or fruit lying on the plate. Give each such pair. Give an empty
    list if nothing lies on anything.
 2. Which trays are in the photo? The grey tray is a light grey plastic box; the black tray is a flat dark grey or black
    rectangle, often large, sometimes filling half the photo. Give the box of each tray that is really there.
+3. Which machine parts are in the photo? grey_part: an oblong flat grey metal plate with a round hole (up to two);
+   white_part: a large white plastic plate, slightly curved; small_part: a small white electronic module with a blue
+   connector, about the size of a gear, often lying in a tray. Give the box of each part that is really there, also
+   when it is partly covered by another object. Give an empty list if there is none.
 
 Answer with one JSON object and nothing else:
-{"stacked": [{"top": "<name>", "under": "<name>"}, ...], "trays": [{"name": "grey_tray" or "black_tray", "bbox": [x1, y1, x2, y2]}, ...]}
+{"stacked": [{"top": "<name>", "under": "<name>"}, ...], "trays": [{"name": "grey_tray" or "black_tray", "bbox": [x1, y1, x2, y2]}, ...],
+ "parts": [{"name": "grey_part" or "white_part" or "small_part", "bbox": [x1, y1, x2, y2]}, ...]}
 Names: red_gear, yellow_gear, red_cube, mug, mandarin, banana, plate, saucer, grey_part, white_part, small_part, grey_tray, black_tray.
 bbox is in relative coordinates from 0 to 1000: x from the left edge, y from the top edge."""
+LAYOUT_VERSION = 2   # bump when LAYOUT_PROMPT/LAYOUT_SCHEMA change, so cached layout replies are refreshed
 
 SEE_SCHEMA = {"type": "object", "required": ["objects"], "properties": {"objects": {"type": "array", "items": {
     "type": "object", "required": ["name", "bbox", "on_top_of"], "properties": {
         "name": {"enum": NAMES},
         "bbox": {"type": "array", "items": {"type": "integer"}, "minItems": 4, "maxItems": 4},
         "on_top_of": {"type": ["string", "null"]}}}}}}
-LAYOUT_SCHEMA = {"type": "object", "required": ["stacked", "trays"], "properties": {
+LAYOUT_SCHEMA = {"type": "object", "required": ["stacked", "trays", "parts"], "properties": {
     "stacked": {"type": "array", "items": {"type": "object", "required": ["top", "under"], "properties": {
         "top": {"enum": NAMES}, "under": {"enum": NAMES}}}},
     "trays": {"type": "array", "items": {"type": "object", "required": ["name", "bbox"], "properties": {
         "name": {"enum": list(TRAYS)},
+        "bbox": {"type": "array", "items": {"type": "integer"}, "minItems": 4, "maxItems": 4}}}},
+    "parts": {"type": "array", "items": {"type": "object", "required": ["name", "bbox"], "properties": {
+        "name": {"enum": ["grey_part", "white_part", "small_part"]},
         "bbox": {"type": "array", "items": {"type": "integer"}, "minItems": 4, "maxItems": 4}}}}}}
 
 
@@ -157,7 +167,8 @@ def ollama_chat(base_url: str, model: str, prompt: str | list[dict], *, image_b6
         messages = [msg]
     else:
         messages = prompt
-    body = {"model": model, "messages": messages, "stream": False, "options": {"temperature": 0, "num_predict": 1500}}
+    body = {"model": model, "messages": messages, "stream": False,
+            "options": {"temperature": 0, "seed": 0, "num_predict": 1500}}   # seed: reruns repeat the same answers
     if schema is not None:
         body["format"] = schema
     if think is not None:
@@ -169,7 +180,7 @@ def ollama_chat(base_url: str, model: str, prompt: str | list[dict], *, image_b6
 
 
 # ----------------------------------------------------------------------------- scene table
-CACHE_VERSION = 3   # bump when scene_table changes, so an old results.scenes.json is rebuilt from its vision replies
+CACHE_VERSION = 5   # bump when scene_table changes, so an old results.scenes.json is rebuilt from its vision replies
 WORDS = {n: n.replace("_", " ") for n in NAMES} | {"small_part": "small white part"}   # internal name -> words
 
 
@@ -195,6 +206,15 @@ def scene_table(seen: dict, w: int, h: int, layout: dict | None = None) -> list[
     if isinstance(layout, dict):
         have = {o.get("name") for o in raw}
         raw += [t for t in layout.get("trays", []) if isinstance(t, dict) and t.get("name") in TRAYS and t["name"] not in have]
+        # machine parts the first pass missed (the small module in a tray): add a part box that overlaps no known part
+        known = [o["bbox"] for o in raw if o.get("name") in PARTS and isinstance(o.get("bbox"), list) and len(o["bbox"]) == 4]
+        # the white plate is often reported again as "white_part": a part box that coincides with a plate/saucer/mug is that object
+        dishes = [o["bbox"] for o in raw if o.get("name") in ("plate", "saucer", "mug") and isinstance(o.get("bbox"), list) and len(o["bbox"]) == 4]
+        for p in layout.get("parts", []):
+            if isinstance(p, dict) and p.get("name") in PARTS and isinstance(p.get("bbox"), list) and len(p["bbox"]) == 4 \
+                    and not any(_overlap(p["bbox"], k) > 0.3 for k in known) and not any(_overlap(p["bbox"], d) > 0.8 for d in dishes):
+                raw.append({"name": p["name"], "bbox": p["bbox"], "on_top_of": None})
+                known.append(p["bbox"])
         stacked = [s for s in layout.get("stacked", []) if isinstance(s, dict) and s.get("top") in NAMES and s.get("under") in NAMES
                    and s["top"] != s["under"] and s["under"] not in TRAYS]
     objs = []
@@ -205,7 +225,7 @@ def scene_table(seen: dict, w: int, h: int, layout: dict | None = None) -> list[
         box = [round(x1 / 1000 * w), round(y1 / 1000 * h), round(x2 / 1000 * w), round(y2 / 1000 * h)]
         objs.append({"base": o["name"], "bbox": box, "centre": [(box[0] + box[2]) // 2, (box[1] + box[3]) // 2],
                      "size": [box[2] - box[0], box[3] - box[1]], "on_top_of": o.get("on_top_of"), "note": None})
-    objs = reading_order(objs, h)
+    objs = reading_order(fix_parts(objs, w), h)
     counts = {}
     for o in objs:
         counts[o["base"]] = counts.get(o["base"], 0) + 1
@@ -272,34 +292,79 @@ def scene_table(seen: dict, w: int, h: int, layout: dict | None = None) -> list[
     return objs
 
 
+PARTS = ("grey_part", "white_part", "small_part")
+# long side of the box in a 2448 px wide photo: small white module ~330, grey metal plate 470-545 (440 when partly
+# covered by a cube), white plate ~650
+PART_LONG_SIDE = {"white_part": 600, "grey_part": 390}
+
+
+def _overlap(a: list, b: list) -> float:
+    """Intersection over the smaller box's area."""
+    iw = min(a[2], b[2]) - max(a[0], b[0])
+    ih = min(a[3], b[3]) - max(a[1], b[1])
+    if iw <= 0 or ih <= 0:
+        return 0.0
+    return iw * ih / max(1, min((a[2] - a[0]) * (a[3] - a[1]), (b[2] - b[0]) * (b[3] - b[1])))
+
+
+def fix_parts(objs: list[dict], w: int) -> list[dict]:
+    """The vision model confuses the three machine parts (it calls the small module 'white_part' and the grey plates
+    'small_part') and sometimes splits the small module into two boxes. The camera is fixed, so pixel size is
+    physical size: touching fragments are merged, then each part is labelled by the long side of its box."""
+    parts = [o for o in objs if o["base"] in PARTS]
+    others = [o for o in objs if o["base"] not in PARTS]
+    scale = w / 2448
+    merged = True
+    while merged and len(parts) > 1:
+        merged = False
+        for i, a in enumerate(parts):
+            for b in parts[i + 1:]:
+                if max(a["size"]) >= PART_LONG_SIDE["grey_part"] * scale or max(b["size"]) >= PART_LONG_SIDE["grey_part"] * scale:
+                    continue   # only small pieces can be fragments of one part
+                gap = 40 * scale
+                if a["bbox"][0] - gap <= b["bbox"][2] and b["bbox"][0] - gap <= a["bbox"][2] \
+                        and a["bbox"][1] - gap <= b["bbox"][3] and b["bbox"][1] - gap <= a["bbox"][3]:
+                    box = [min(a["bbox"][0], b["bbox"][0]), min(a["bbox"][1], b["bbox"][1]),
+                           max(a["bbox"][2], b["bbox"][2]), max(a["bbox"][3], b["bbox"][3])]
+                    a.update(bbox=box, centre=[(box[0] + box[2]) // 2, (box[1] + box[3]) // 2], size=[box[2] - box[0], box[3] - box[1]])
+                    parts.remove(b)
+                    merged = True
+                    break
+            if merged:
+                break
+    for o in parts:
+        long = max(o["size"]) / scale
+        o["base"] = "white_part" if long >= PART_LONG_SIDE["white_part"] else "grey_part" if long >= PART_LONG_SIDE["grey_part"] else "small_part"
+    return others + parts
+
+
 def add_descriptions(objs: list[dict], w: int, h: int) -> None:
-    """o['desc']: the object in words a person understands ("the red gear at the top left, in the grey tray, with the
-    yellow gear on it"). Region = a 3 x 3 grid over the photo; two objects of one type in the same region are told
-    apart by left/right or upper/lower. Used to render the names in questions and refusal reasons."""
+    """o['desc']: the object in words a person understands. A unique object gets its region of the photo (3 x 3 grid):
+    "the mug at the top right, in the black tray". Several objects of one kind are ordered along the axis they are
+    spread on: "the leftmost red gear", "the middle red gear", "the rightmost red gear" (or top / bottom), followed
+    by the tray and the stacking. Used to render the names in questions and refusal reasons."""
     def region(o):
         u, v = o["centre"]
         row = "top" if v < h / 3 else "bottom" if v > 2 * h / 3 else ""
         col = "left" if u < w / 3 else "right" if u > 2 * w / 3 else ""
         return f"at the {row} {col}" if row and col else f"at the {row}" if row else f"on the {col}" if col else "in the centre"
-    for o in objs:
-        o["desc"] = f"the {WORDS[o['base']]} {region(o)}"
     for base in {o["base"] for o in objs}:
-        for reg in {region(o) for o in objs if o["base"] == base}:
-            same = [o for o in objs if o["base"] == base and region(o) == reg]
-            if len(same) < 2:
-                continue
-            us, vs = [o["centre"][0] for o in same], [o["centre"][1] for o in same]
-            horizontal = max(us) - min(us) >= max(vs) - min(vs)
-            same.sort(key=lambda o: o["centre"][0] if horizontal else o["centre"][1])
-            n = {2: "two", 3: "three", 4: "four"}.get(len(same), str(len(same)))
-            if len(same) == 2:
-                labels = ["the left", "the right"] if horizontal else ["the upper", "the lower"]
-            else:
-                first, last = ("leftmost", "rightmost") if horizontal else ("topmost", "bottommost")
-                labels = [f"the {first}"] + [f"the {i + 1}{'nd' if i == 1 else 'rd' if i == 2 else 'th'} from the {first[:-4]}"
-                                             for i in range(1, len(same) - 1)] + [f"the {last}"]
-            for o, lab in zip(same, labels):
-                o["desc"] += f", {lab} of the {n}"
+        same = [o for o in objs if o["base"] == base]
+        if len(same) == 1:
+            same[0]["desc"] = f"the {WORDS[base]} {region(same[0])}"
+            continue
+        us, vs = [o["centre"][0] for o in same], [o["centre"][1] for o in same]
+        horizontal = max(us) - min(us) >= max(vs) - min(vs)
+        same.sort(key=lambda o: o["centre"][0] if horizontal else o["centre"][1])
+        if len(same) == 2:
+            labels = ["left", "right"] if horizontal else ["upper", "lower"]
+        else:
+            first, last = ("leftmost", "rightmost") if horizontal else ("top", "bottom")
+            labels = [first] + (["middle"] if len(same) == 3 else
+                                [f"{i + 1}{'nd' if i == 1 else 'rd' if i == 2 else 'th'} from the {'left' if horizontal else 'top'}"
+                                 for i in range(1, len(same) - 1)]) + [last]
+        for o, lab in zip(same, labels):
+            o["desc"] = f"the {lab} {WORDS[base]}"
     by_name = {o["name"]: o for o in objs}
     for o in objs:
         if o["in_tray"]:
@@ -577,8 +642,11 @@ def resolve(text: str, objs: list[dict]) -> list[str]:
         if pool:
             best = min(pool, key=lambda o: _dist(o, anchor))
             cands, cue = [best], f"{d} of {m2['phrase']}"
-    sm = re.search(r"\b(big|bigger|biggest|large|larger|largest|small|smaller|smallest|little|tiny)\b", t)
-    if sm and len(cands) > 1 and not (head["start"] <= sm.start() < head["end"]):
+    # a size word directly before the head phrase ("the big red gear"); one elsewhere belongs to another object
+    # ("both grey parts and the small white part")
+    sm = next((m for m in re.finditer(r"\b(big|bigger|biggest|large|larger|largest|small|smaller|smallest|little|tiny)\b", t)
+               if 0 <= head["start"] - m.end() <= 12), None)
+    if sm and len(cands) > 1:
         area = lambda o: o["size"][0] * o["size"][1]
         best = max(cands, key=area) if sm.group(1)[0] in "bl" else min(cands, key=area)
         cands, cue = [best], sm.group(1)
@@ -678,17 +746,31 @@ def check(ans: dict, hints: list[str], objs: list[dict]) -> list[str]:
         allh = next((h for h in hints if "(all of them" in h), None)
         if allh:
             allowed = {n.strip() for n in allh.split(" = ")[1].split(":")[0].split(",")}
+            # objects that other phrases of the instruction resolve to ("... and the small white part") are allowed too
+            allowed |= {o["name"] for o in objs if any(o["name"] in h for h in hints if h is not allh)}
             extra = [p for p in picked if p not in allowed and p not in {t for n in allowed for t in by_name.get(n, {}).get("supports", [])}]
             if extra:
                 issues.append(f"The instruction covers only {', '.join(sorted(allowed))}; the plan also picks {', '.join(extra)}. Leave those out.")
         for i, p in enumerate(picked):
             tops = [t for t in (by_name.get(p, {}).get("supports") or []) if t not in picked[:i]]
             if tops:
-                issues.append(f"{', '.join(tops)} lies on top of {p}: pick {tops[0]} and put it aside before picking {p}.")
+                issues.append(f"{', '.join(tops)} lies on top of {p}: the plan must start with pick {tops[0]}, place none "
+                              f"(set it aside), and then continue with the moves you planned. This is a plan, not a refusal.")
                 break
         fm = next((h for h in hints if h.startswith("first pick ")), None)
         if fm and picked and picked[0] != fm.split()[2]:
             issues.append(f"The instruction puts something under {fm.split()[2]}: {fm}")
+        elif fm and one:
+            # "put X under Y": after Y is set aside, X must reach a destination and Y must end up on X
+            y, x = fm.split()[2], one.split(" = ")[1].split(":")[0].strip()
+            moves = [(a["object"], ans["actions"][i + 1]["object"] if i + 1 < len(ans["actions"]) and ans["actions"][i + 1]["action"] == "place" else None)
+                     for i, a in enumerate(ans["actions"]) if a["action"] == "pick"]
+            x_dest = next((d for p, d in moves if p == x and d), None)
+            if not x_dest or (x, x_dest) not in moves or (y, x) not in moves[moves.index((x, x_dest)) + 1:]:
+                # the destination: the tray or plate the instruction names (resolved in the hints)
+                dest = next((n for n in DESTINATIONS if any(f"= {n}" in h for h in hints)), "<the destination the instruction names>")
+                issues.append(f"The plan must have exactly three moves, in this order: 1. pick {y}, place none (set it aside); "
+                              f"2. pick {x}, place {dest}; 3. pick {y}, place {x}. Your plan leaves out the move of {x} to {dest}.")
     return issues
 
 
@@ -746,6 +828,8 @@ def main():
     ap.add_argument("--no-hints", action="store_true", help="do not give Apertus the resolved references (ablation)")
     ap.add_argument("--think", action="store_true", help="let Apertus think before answering (slower)")
     ap.add_argument("--no-check", action="store_true", help="skip the self-check round (ablation)")
+    ap.add_argument("--reuse", action="store_true",
+                    help="reuse Apertus replies from <out>.raw.jsonl where table and hints are unchanged (fast re-render)")
     args = ap.parse_args()
 
     scenes = sorted(p for p in args.data.iterdir() if p.is_dir() and (p / "rgb.png").exists())
@@ -767,7 +851,7 @@ def main():
                 b64, *_ = encode(sc.rgb, args.max_side)
                 reply = ollama_chat(args.base_url, args.vision_model, SEE_PROMPT, image_b64=b64,
                                     schema=None if args.no_schema else SEE_SCHEMA, think=False)
-            if d.name in cache and "layout" in cache[d.name]:
+            if d.name in cache and cache[d.name].get("layout_v") == LAYOUT_VERSION:
                 layout = cache[d.name]["layout"]
             else:
                 b64 = b64 or encode(sc.rgb, args.max_side)[0]
@@ -776,12 +860,17 @@ def main():
             objs = scene_table(parse(reply) or {}, w, h, parse(layout) or {})
             for o in objs:
                 o["pixel"] = refine_pixel(sc.rgb, o["bbox"])
-            cache[d.name] = {"version": CACHE_VERSION, "raw": reply, "layout": layout, "objects": objs, "size": [w, h]}
+            cache[d.name] = {"version": CACHE_VERSION, "raw": reply, "layout": layout, "layout_v": LAYOUT_VERSION,
+                             "objects": objs, "size": [w, h]}
             cache_path.write_text(json.dumps(cache, indent=1))
             print(f"[see] {d.name}: {', '.join(o['name'] + (' on ' + o['on_top_of'] if o['on_top_of'] else '') for o in objs)}")
         # stage 2: Apertus plans from text only
-        results, bad = [], 0
-        with args.out.with_suffix(".raw.jsonl").open("w") as raw:
+        results, bad, reused = [], 0, 0
+        raw_path = args.out.with_suffix(".raw.jsonl")
+        prev = {}
+        if args.reuse and raw_path.exists():   # earlier replies, reused where the prompt is unchanged
+            prev = {r["instruction_id"]: r for r in (json.loads(l) for l in raw_path.read_text().splitlines() if l.strip())}
+        with raw_path.open("w") as raw:
             for n, (d, iid, text) in enumerate(jobs, 1):
                 objs, (w, h) = cache[d.name]["objects"], cache[d.name]["size"]
                 for o in objs:
@@ -789,15 +878,33 @@ def main():
                 hints = [] if args.no_hints else resolve(text, objs)
                 prompt = PLAN_PROMPT.format(w=w, h=h, table=table_text(objs), hints=hints_text(hints), text=text)
                 schema = None if args.no_schema else plan_schema(objs)
-                reply = ollama_chat(args.base_url, args.model, prompt, schema=schema, think=True if args.think else None)
+                old = prev.get(iid)
+                if old and old.get("scene") == table_text(objs) and old.get("hints") == hints and old.get("reply"):
+                    reply, reused = old["reply"], reused + 1
+                else:
+                    old = None
+                    reply = ollama_chat(args.base_url, args.model, prompt, schema=schema, think=True if args.think else None)
                 ans = to_answer(reply, objs, iid)
-                issues = check(ans, hints, objs) if hints and not args.no_check else []
-                reply2 = None
-                if issues:  # one self-check round: Apertus sees its answer and the contradiction, answers again
-                    msgs = [{"role": "user", "content": prompt}, {"role": "assistant", "content": reply},
-                            {"role": "user", "content": CHECK_PROMPT.format(issues="\n".join("- " + i for i in issues))}]
-                    reply2 = ollama_chat(args.base_url, args.model, msgs, schema=schema, think=True if args.think else None)
-                    ans = to_answer(reply2, objs, iid)
+                # self-check, at most two rounds: Apertus sees its answer and the contradiction with the hints and answers
+                # again; the second round catches an answer that the first correction pushed too far (a refusal instead
+                # of the corrected plan)
+                msgs = [{"role": "user", "content": prompt}, {"role": "assistant", "content": reply}]
+                old_rounds = (old.get("rounds") if old else None) or \
+                    ([{"issues": old["check"], "reply": old["reply2"]}] if old and old.get("check") else [])
+                rounds = []
+                for r in range(2 if hints and not args.no_check else 0):
+                    issues = check(ans, hints, objs)
+                    if not issues:
+                        break
+                    msgs.append({"role": "user", "content": CHECK_PROMPT.format(issues="\n".join("- " + i for i in issues))})
+                    if r < len(old_rounds) and old_rounds[r].get("issues") == issues and old_rounds[r].get("reply"):
+                        reply_r = old_rounds[r]["reply"]
+                    else:
+                        reply_r = ollama_chat(args.base_url, args.model, msgs, schema=schema, think=True if args.think else None)
+                    msgs.append({"role": "assistant", "content": reply_r})
+                    rounds.append({"issues": issues, "reply": reply_r})
+                    ans = to_answer(reply_r, objs, iid)
+                issues = rounds[0]["issues"] if rounds else []
                 bad += ans["actions"][0].get("question") == FALLBACK_QUESTION
                 for a in ans["actions"]:   # what the person reads: names rendered as descriptions
                     if "question" in a:
@@ -806,12 +913,14 @@ def main():
                         a["reason"] = humanize(a["reason"], objs, full=False)
                 results.append(ans)
                 raw.write(json.dumps({"instruction_id": iid, "instruction": text, "scene": table_text(objs), "hints": hints,
-                                      "reply": reply, "check": issues, "reply2": reply2}) + "\n")
-                print(f"[{n}/{len(jobs)}] {iid}: {answer_type(ans)[0]}{' (after check)' if issues else ''}  {text!r}")
+                                      "reply": reply, "check": issues, "reply2": rounds[0]["reply"] if rounds else None,
+                                      "rounds": rounds}) + "\n")
+                print(f"[{n}/{len(jobs)}] {iid}: {answer_type(ans)[0]}{f' (after {len(rounds)} check)' if rounds else ''}  {text!r}")
     except urllib.error.URLError as e:
         sys.exit(f"cannot reach Ollama at {args.base_url} ({e}). Start it with `ollama serve` and pull both models.")
     args.out.write_text(json.dumps({"team": args.team, "results": results}, indent=2))
-    print(f"\n{len(results)} answers in {args.out} ({bad} fell back to ask_user) in {time.time() - t0:.0f}s")
+    print(f"\n{len(results)} answers in {args.out} ({bad} fell back to ask_user"
+          + (f", {reused} replies reused" if args.reuse else "") + f") in {time.time() - t0:.0f}s")
     print(f"score it:  python starter/evaluate.py {args.out} --data {args.data}")
 
 

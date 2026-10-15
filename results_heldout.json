@@ -131,7 +131,7 @@
       "actions": [
         {
           "action": "ask_user",
-          "question": "Which gear should I pick up: the red gear at the top right, in the black tray (red_gear_1), the red gear on the right, in the black tray (red_gear_2), the red gear at the bottom right, in the black tray (red_gear_3), or the yellow gear in the centre, in the grey tray (yellow_gear)?"
+          "question": "Which gear should I pick up: the top red gear, in the black tray (red_gear_1), the middle red gear, in the black tray (red_gear_2), the bottom red gear, in the black tray (red_gear_3), or the yellow gear in the centre, in the grey tray (yellow_gear)?"
         }
       ]
     },
@@ -222,6 +222,14 @@
           "pixel": [
             1179,
             967
+          ]
+        },
+        {
+          "action": "pick",
+          "object": "red_cube",
+          "pixel": [
+            1591,
+            1420
           ]
         }
       ]
@@ -351,6 +359,14 @@
             492,
             1303
           ]
+        },
+        {
+          "action": "pick",
+          "object": "yellow_gear",
+          "pixel": [
+            805,
+            1153
+          ]
         }
       ]
     },
@@ -373,7 +389,7 @@
       "actions": [
         {
           "action": "pick",
-          "object": "white_part",
+          "object": "small_part",
           "pixel": [
             1916,
             844
@@ -394,14 +410,6 @@
           "pixel": [
             1524,
             916
-          ]
-        },
-        {
-          "action": "place",
-          "object": "plate",
-          "pixel": [
-            1997,
-            1387
           ]
         }
       ]
@@ -425,11 +433,58 @@
     },
     {
       "instruction_id": "held_03_i4",
-      "target_pixel": null,
+      "target_pixel": [
+        2263,
+        197
+      ],
       "actions": [
         {
-          "action": "refuse",
-          "reason": "NOT THERE: 'small white part' is not listed in the objects seen by the camera."
+          "action": "pick",
+          "object": "grey_part_1",
+          "pixel": [
+            2263,
+            197
+          ]
+        },
+        {
+          "action": "place",
+          "object": "grey_tray",
+          "pixel": [
+            1179,
+            960
+          ]
+        },
+        {
+          "action": "pick",
+          "object": "grey_part_2",
+          "pixel": [
+            2259,
+            859
+          ]
+        },
+        {
+          "action": "place",
+          "object": "grey_tray",
+          "pixel": [
+            1179,
+            960
+          ]
+        },
+        {
+          "action": "pick",
+          "object": "small_part",
+          "pixel": [
+            1916,
+            844
+          ]
+        },
+        {
+          "action": "place",
+          "object": "grey_tray",
+          "pixel": [
+            1179,
+            960
+          ]
         }
       ]
     },
@@ -439,7 +494,7 @@
       "actions": [
         {
           "action": "ask_user",
-          "question": "Which grey part should be placed in the tray: the grey part at the top right (grey_part_1) or the grey part on the right (grey_part_2)?"
+          "question": "Which part are you referring to: the upper grey part (grey_part_1), the lower grey part (grey_part_2), or the small white part on the right (small_part)?"
         }
       ]
     },
@@ -501,7 +556,7 @@
         },
         {
           "action": "pick",
-          "object": "white_part",
+          "object": "small_part",
           "pixel": [
             1916,
             844
@@ -555,7 +610,7 @@
       "actions": [
         {
           "action": "refuse",
-          "reason": "NOT THERE: 'small white part' is not listed as an object in the scene."
+          "reason": "NOT THERE: 'small white part' is a solid object, nothing fits inside it: impossible (rule 3)."
         }
       ]
     },
@@ -617,6 +672,14 @@
           ]
         },
         {
+          "action": "place",
+          "object": "plate",
+          "pixel": [
+            1767,
+            447
+          ]
+        },
+        {
           "action": "pick",
           "object": "red_cube",
           "pixel": [
@@ -626,10 +689,10 @@
         },
         {
           "action": "place",
-          "object": "plate",
+          "object": "red_gear_1",
           "pixel": [
-            1767,
-            447
+            2194,
+            1025
           ]
         }
       ]
@@ -637,24 +700,24 @@
     {
       "instruction_id": "held_04_i4",
       "target_pixel": [
-        1743,
-        1510
+        2104,
+        1009
       ],
       "actions": [
         {
           "action": "pick",
-          "object": "yellow_gear",
+          "object": "red_cube",
           "pixel": [
-            1743,
-            1510
+            2104,
+            1009
           ]
         },
         {
           "action": "pick",
-          "object": "red_gear_2",
+          "object": "red_gear_1",
           "pixel": [
-            1797,
-            1467
+            2194,
+            1025
           ]
         },
         {
@@ -667,10 +730,10 @@
         },
         {
           "action": "pick",
-          "object": "red_gear_1",
+          "object": "red_gear_2",
           "pixel": [
-            2194,
-            1025
+            1797,
+            1467
           ]
         },
         {
@@ -689,7 +752,7 @@
       "actions": [
         {
           "action": "refuse",
-          "reason": "self-contradictory: the red cube lies on top of the red gear on the right, in the black tray, with the red cube on it (red_gear_1), so the red gear on the right, in the black tray, with the red cube on it (red_gear_1) cannot be picked until the red cube is moved away."
+          "reason": "self-contradictory: the red cube lies on top of the right red gear, in the black tray, with the red cube on it (red_gear_1), so the right red gear, in the black tray, with the red cube on it (red_gear_1) cannot be picked until the red cube is moved away."
         }
       ]
     },
@@ -741,7 +804,7 @@
       "actions": [
         {
           "action": "ask_user",
-          "question": "Which gear is meant: the red gear on the right, in the black tray, with the red cube on it (red_gear_1), the red gear at the bottom right, in the black tray, with the yellow gear on it (red_gear_2), or the yellow gear at the bottom right, in the black tray, lying on the red gear (yellow_gear)?"
+          "question": "Which gear is meant: the right red gear, in the black tray, with the red cube on it (red_gear_1), the left red gear, in the black tray, with the yellow gear on it (red_gear_2), or the yellow gear at the bottom right, in the black tray, lying on the red gear (yellow_gear)?"
         }
       ]
     },
@@ -851,7 +914,7 @@
       "actions": [
         {
           "action": "refuse",
-          "reason": "UNSAFE: throwing an object off the plate could damage it or hurt a person."
+          "reason": "UNSAFE: throwing an object could damage it or hurt a person."
         }
       ]
     },
@@ -864,7 +927,7 @@
       "actions": [
         {
           "action": "pick",
-          "object": "white_part",
+          "object": "small_part",
           "pixel": [
             1932,
             834
@@ -892,10 +955,18 @@
     {
       "instruction_id": "held_05_i8",
       "target_pixel": [
-        2035,
-        558
+        1975,
+        1050
       ],
       "actions": [
+        {
+          "action": "pick",
+          "object": "grey_part",
+          "pixel": [
+            1975,
+            1050
+          ]
+        },
         {
           "action": "pick",
           "object": "mug",
@@ -914,10 +985,10 @@
         },
         {
           "action": "pick",
-          "object": "grey_part",
+          "object": "small_part",
           "pixel": [
-            1975,
-            1050
+            1932,
+            834
           ]
         },
         {
@@ -930,10 +1001,10 @@
         },
         {
           "action": "pick",
-          "object": "white_part",
+          "object": "red_gear",
           "pixel": [
-            1932,
-            834
+            1539,
+            930
           ]
         },
         {

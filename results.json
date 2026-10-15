@@ -72,7 +72,7 @@
           "object": "black_tray",
           "pixel": [
             1285,
-            1415
+            1416
           ]
         },
         {
@@ -88,7 +88,7 @@
           "object": "black_tray",
           "pixel": [
             1285,
-            1415
+            1416
           ]
         },
         {
@@ -104,7 +104,7 @@
           "object": "black_tray",
           "pixel": [
             1285,
-            1415
+            1416
           ]
         }
       ]
@@ -343,7 +343,7 @@
       "actions": [
         {
           "action": "ask_user",
-          "question": "Which red gear should I pick up: the red gear in the centre (red_gear_1), the red gear on the right, the left of the two (red_gear_2), or the red gear on the right, the right of the two (red_gear_3)?"
+          "question": "Which red gear should I pick up: the leftmost red gear (red_gear_1), the middle red gear (red_gear_2), or the rightmost red gear (red_gear_3)?"
         }
       ]
     },
@@ -392,16 +392,16 @@
     {
       "instruction_id": "scene_04_i3",
       "target_pixel": [
-        1690,
-        1133
+        2112,
+        645
       ],
       "actions": [
         {
           "action": "pick",
-          "object": "white_part",
+          "object": "grey_part_2",
           "pixel": [
-            1690,
-            1133
+            2112,
+            645
           ]
         }
       ]
@@ -415,7 +415,7 @@
       "actions": [
         {
           "action": "pick",
-          "object": "small_part_1",
+          "object": "grey_part_1",
           "pixel": [
             1665,
             461
@@ -431,7 +431,7 @@
         },
         {
           "action": "pick",
-          "object": "small_part_2",
+          "object": "grey_part_2",
           "pixel": [
             2112,
             645
@@ -469,7 +469,7 @@
       "actions": [
         {
           "action": "refuse",
-          "reason": "UNSAFE: throwing an object could damage it or hurt a person."
+          "reason": "UNSAFE: the instruction says throw, which is an unsafe action (rule 1)."
         }
       ]
     },
@@ -674,6 +674,14 @@
           ]
         },
         {
+          "action": "place",
+          "object": "grey_tray",
+          "pixel": [
+            1179,
+            962
+          ]
+        },
+        {
           "action": "pick",
           "object": "yellow_gear",
           "pixel": [
@@ -737,8 +745,8 @@
           "action": "place",
           "object": "black_tray",
           "pixel": [
-            1736,
-            1658
+            1284,
+            1342
           ]
         }
       ]
@@ -776,43 +784,35 @@
           ]
         },
         {
-          "action": "place",
-          "object": "red_gear",
-          "pixel": [
-            468,
-            545
-          ]
-        },
-        {
           "action": "pick",
           "object": "red_gear",
           "pixel": [
             468,
             545
-          ]
-        },
-        {
-          "action": "place",
-          "object": "mug",
-          "pixel": [
-            606,
-            698
-          ]
-        },
-        {
-          "action": "pick",
-          "object": "mug",
-          "pixel": [
-            606,
-            698
           ]
         },
         {
           "action": "place",
           "object": "black_tray",
           "pixel": [
-            1736,
-            1658
+            1284,
+            1342
+          ]
+        },
+        {
+          "action": "pick",
+          "object": "mug",
+          "pixel": [
+            606,
+            698
+          ]
+        },
+        {
+          "action": "place",
+          "object": "red_gear",
+          "pixel": [
+            468,
+            545
           ]
         }
       ]
@@ -823,7 +823,7 @@
       "actions": [
         {
           "action": "refuse",
-          "reason": "CANNOT: the instruction asks to pick up the red gear without moving the mug, which lies on the red gear; the mug must be moved away first, making the request self-contradictory."
+          "reason": "cannot: the instruction requires moving the mug, which is on the red gear tray, violating rule 3 (self-contradictory)"
         }
       ]
     },
@@ -846,11 +846,26 @@
     },
     {
       "instruction_id": "scene_08_i2",
-      "target_pixel": null,
+      "target_pixel": [
+        798,
+        595
+      ],
       "actions": [
         {
-          "action": "refuse",
-          "reason": "NOT THERE: the camera lists no small white part object."
+          "action": "pick",
+          "object": "small_part",
+          "pixel": [
+            798,
+            595
+          ]
+        },
+        {
+          "action": "place",
+          "object": "plate",
+          "pixel": [
+            1827,
+            1312
+          ]
         }
       ]
     },
@@ -884,6 +899,22 @@
           "pixel": [
             1829,
             514
+          ]
+        },
+        {
+          "action": "pick",
+          "object": "red_gear_1",
+          "pixel": [
+            1535,
+            570
+          ]
+        },
+        {
+          "action": "place",
+          "object": "grey_tray",
+          "pixel": [
+            1179,
+            959
           ]
         },
         {
@@ -990,10 +1021,10 @@
         },
         {
           "action": "place",
-          "object": "red_cube",
+          "object": "plate",
           "pixel": [
-            959,
-            874
+            1827,
+            1312
           ]
         },
         {
@@ -1006,10 +1037,10 @@
         },
         {
           "action": "place",
-          "object": "plate",
+          "object": "grey_part",
           "pixel": [
-            1827,
-            1312
+            462,
+            749
           ]
         }
       ]
@@ -1020,7 +1051,7 @@
       "actions": [
         {
           "action": "refuse",
-          "reason": "self-contradictory: 'put the mandarin on the plate and leave it where it is' cannot be done because the mandarin is already exactly one object and must stay where it is."
+          "reason": "unsafe: instruction says leave it where it is, contradicting the move to put the mandarin on the plate"
         }
       ]
     },
@@ -1120,6 +1151,14 @@
           "pixel": [
             1827,
             1312
+          ]
+        },
+        {
+          "action": "pick",
+          "object": "yellow_gear",
+          "pixel": [
+            832,
+            1477
           ]
         }
       ]

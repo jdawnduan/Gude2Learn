@@ -28,25 +28,46 @@ def test_table():
     assert by["yellow_gear"]["on_top_of"] == "red_gear_2"          # box-overlap fallback for stacking
     assert by["red_gear_2"]["supports"] == ["yellow_gear"]
     assert by["mug"]["in_tray"] == "black_tray"                     # tray added by the layout pass
-    # descriptions a person can read; the two red gears sit in different regions
-    assert by["red_gear_1"]["desc"] == "the red gear on the left, in the grey tray"
-    assert by["red_gear_2"]["desc"] == "the red gear in the centre, with the yellow gear on it"
+    # descriptions a person can read: duplicates by their order, unique objects by their region of the photo
+    assert by["red_gear_1"]["desc"] == "the left red gear, in the grey tray"
+    assert by["red_gear_2"]["desc"] == "the right red gear, with the yellow gear on it"
     assert by["yellow_gear"]["desc"] == "the yellow gear in the centre, lying on the red gear"
     assert by["mug"]["desc"] == "the mug at the top right, in the black tray"
     q = humanize("Which red gear: red_gear_1 or red_gear_2?", objs)
-    assert q == ("Which red gear: the red gear on the left, in the grey tray (red_gear_1) or "
-                 "the red gear in the centre, with the yellow gear on it (red_gear_2)?")
-    # same type, same region: told apart by left/right
+    assert q == ("Which red gear: the left red gear, in the grey tray (red_gear_1) or "
+                 "the right red gear, with the yellow gear on it (red_gear_2)?")
     three = scene_table({"objects": [{"name": "red_gear", "bbox": [400 + 100 * i, 450, 460 + 100 * i, 550], "on_top_of": None}
                                      for i in range(3)]}, 1000, 1000)
-    assert [o["desc"] for o in three] == ["the red gear in the centre, the leftmost of the three",
-                                          "the red gear in the centre, the 2nd from the left of the three",
-                                          "the red gear in the centre, the rightmost of the three"]
+    assert [o["desc"] for o in three] == ["the leftmost red gear", "the middle red gear", "the rightmost red gear"]
+    four = scene_table({"objects": [{"name": "red_gear", "bbox": [400, 100 + 200 * i, 460, 160 + 200 * i], "on_top_of": None}
+                                    for i in range(4)]}, 1000, 1000)
+    assert [o["desc"] for o in four] == ["the top red gear", "the 2nd from the top red gear", "the 3rd from the top red gear",
+                                         "the bottom red gear"]
+    # machine parts relabelled by size: two "small" plates of 512 and 506 px are grey parts, a 650 px plate is the white
+    # part, and two touching fragments of 100x223 and 242x129 px are one small white part
+    parts = scene_table({"objects": [
+        {"name": "small_part", "bbox": [582, 149, 792, 271], "on_top_of": None},      # 514x250 px -> grey
+        {"name": "small_part", "bbox": [820, 176, 915, 423], "on_top_of": None},      # 233x506 px -> grey
+        {"name": "grey_part", "bbox": [556, 407, 823, 701], "on_top_of": None},       # 654x602 px -> white
+        {"name": "white_part", "bbox": [296, 241, 337, 350], "on_top_of": None},      # fragment 100x223
+        {"name": "small_part", "bbox": [335, 240, 434, 303], "on_top_of": None}]},    # fragment 242x129, touching
+        2448, 2048)
+    assert sorted(o["name"] for o in parts) == ["grey_part_1", "grey_part_2", "small_part", "white_part"]
+    small = next(o for o in parts if o["name"] == "small_part")
+    assert small["bbox"] == [725, 492, 1062, 717]
+    # a part the first pass missed comes from the layout pass; one that overlaps a known part is not added twice
+    lay = {"stacked": [], "trays": [], "parts": [{"name": "white_part", "bbox": [280, 230, 420, 350]},
+                                                 {"name": "grey_part", "bbox": [585, 150, 790, 270]}]}
+    got = scene_table({"objects": [{"name": "small_part", "bbox": [582, 149, 792, 271], "on_top_of": None}]}, 2448, 2048, lay)
+    assert sorted(o["name"] for o in got) == ["grey_part", "small_part"]     # the layout "white_part" is 343 px long: small
+    lay = {"stacked": [], "trays": [], "parts": [{"name": "white_part", "bbox": [567, 456, 881, 828]}]}   # = the plate's box
+    got = scene_table({"objects": [{"name": "plate", "bbox": [566, 456, 881, 829], "on_top_of": None}]}, 2448, 2048, lay)
+    assert [o["name"] for o in got] == ["plate"]
     # "the" written by Apertus is not doubled; in a reason only duplicated types get the description
     assert humanize("put the mug on the plate", objs) == \
         "put the mug at the top right, in the black tray (mug) on the plate"   # no plate seen: the word stays
     assert humanize("the red_cube lies on red_gear_1; put the mug aside", objs, full=False) == \
-        "the red_cube lies on the red gear on the left, in the grey tray (red_gear_1); put the mug aside"
+        "the red_cube lies on the left red gear, in the grey tray (red_gear_1); put the mug aside"
     return objs
 
 
@@ -63,6 +84,9 @@ def test_resolve(objs):
                                    {"name": "red_gear", "bbox": [500, 100, 700, 300], "on_top_of": None}]}, 1000, 1000)
     assert big[1]["note"] == "the largest one"
     assert "red_gear_2" in [h for h in resolve("pick up the big red gear", big) if "exactly one" in h][0]
+    # a size word applies only to the phrase it stands in front of
+    both = [h for h in resolve("put both red gears and the little yellow gear in the black tray", objs) if "all of them" in h][0]
+    assert "red_gear_1" in both and "red_gear_2" in both
     assert any("no clue" in h for h in resolve("pick up the red gear", objs))
     assert any("no such object" in h for h in resolve("pick up the blue cube", objs))
     assert any("unsafe" in h for h in resolve("throw the mug into the tray", objs))
@@ -104,12 +128,20 @@ def test_answer(objs):
     hints = resolve("put all the red gears in the black tray except the one on the right", objs)
     hints = resolve("put everything from the grey tray in the black tray", objs)  # = red_gear_1 only; mug is extra
     assert check(to_answer('{"actions": [{"pick": "red_gear_1", "place": "black_tray"}, {"pick": "mug", "place": "black_tray"}]}', objs, "x"), hints, objs)
+    hints = resolve("put both red gears and the mug in the black tray", objs)     # the mug is named too: not extra
+    assert not check(to_answer('{"actions": [{"pick": "yellow_gear", "place": "none"}, {"pick": "red_gear_2", "place": "black_tray"}, '
+                               '{"pick": "red_gear_1", "place": "black_tray"}, {"pick": "mug", "place": "black_tray"}]}', objs, "x"), hints, objs)
     hints = resolve("pick up the red gear on the left without moving the mug", objs)   # rule 3, but the reason says "not there"
     issues = check(to_answer('{"actions": [{"refuse": "NOT THERE: red_gear_1 is in the list, so it is there."}]}', objs, "x"), hints, objs)
     assert issues and "reason says" in issues[0]
     hints = resolve("put the red gear under the mug in the black tray", objs)
     assert any(h.startswith("first pick mug") for h in hints)
     assert check(to_answer('{"actions": [{"pick": "red_gear_1", "place": "black_tray"}]}', objs, "x"), hints, objs)
+    hints = resolve("put the red gear on the left under the mug in the black tray", objs)
+    full = '{"actions": [{"pick": "mug", "place": "none"}, {"pick": "red_gear_1", "place": "black_tray"}, {"pick": "mug", "place": "red_gear_1"}]}'
+    assert not check(to_answer(full, objs, "x"), hints, objs)
+    short = '{"actions": [{"pick": "mug", "place": "none"}, {"pick": "red_gear_1", "place": "none"}, {"pick": "mug", "place": "black_tray"}]}'
+    assert any("three moves" in i for i in check(to_answer(short, objs, "x"), hints, objs))
 
 
 def test_pipeline():
