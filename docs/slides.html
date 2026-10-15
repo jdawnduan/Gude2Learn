@@ -104,7 +104,7 @@ tr.repro td.num{font-style:normal}
 /* ---------- slide 2 ---------- */
 .io{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:12px;color:var(--ink-2);margin:8px 0 8px}
 .flow{display:flex;align-items:stretch;gap:0;margin-top:4px}
-.step{flex:1 1 0;min-width:0;border:1px solid var(--rule);border-top:4px solid var(--c);border-radius:4px;padding:10px 10px 12px;display:flex;flex-direction:column;gap:6px;font-size:12.5px;line-height:1.4}
+.step{flex:1 1 0;min-width:0;border:1px solid var(--rule);border-top:4px solid var(--c);border-radius:4px;padding:9px 9px 10px;display:flex;flex-direction:column;gap:5px;font-size:12px;line-height:1.38}
 .step .n{font-family:var(--display);font-size:10px;color:var(--ink-2);letter-spacing:.08em;text-transform:uppercase}
 .step h3{font-size:15px}
 .step.a{--c:var(--apertus)} .step.v{--c:var(--vision)} .step.p{--c:var(--python)}
@@ -112,8 +112,8 @@ tr.repro td.num{font-style:normal}
 .arr{flex:0 0 18px;display:flex;align-items:center;justify-content:center;color:var(--ink-2);font-size:16px}
 .legend{display:flex;gap:18px;font-size:12.5px;color:var(--ink-2);margin-top:12px;align-items:center}
 .legend .sw{display:inline-block;width:12px;height:12px;border-radius:2px;vertical-align:-2px;margin-right:5px}
-.calls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:16px}
-.call{background:var(--tint);border-radius:4px;padding:12px 14px;font-size:13.5px;line-height:1.45;min-width:0}
+.calls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:10px}
+.call{background:var(--tint);border-radius:4px;padding:10px 12px;font-size:12.5px;line-height:1.4;min-width:0}
 .call h3{margin-bottom:5px;font-size:15px}
 .call.a{background:var(--apertus-bg)} .call.a h3{color:var(--apertus)}
 
@@ -135,12 +135,12 @@ tr.repro td.num{font-style:normal}
 .ex code{background:rgba(255,255,255,.7);padding:0 3px;border-radius:2px}
 
 /* ---------- slide 5 ---------- */
-.cols{display:grid;grid-template-columns:1.1fr 1.2fr 1fr;gap:20px;margin-top:14px;font-size:13.5px;line-height:1.45}
-.col{min-width:0;border-top:3px solid var(--rule);padding-top:10px}
+.cols{display:grid;grid-template-columns:1fr 1.1fr 1.15fr;gap:18px;margin-top:10px;font-size:12.5px;line-height:1.4}
+.col{min-width:0;border-top:3px solid var(--rule);padding-top:8px}
 .col.a{border-top-color:var(--apertus)}
-.col h3{margin-bottom:8px;font-size:16px}
-.col li{margin-bottom:7px}
-.repo{margin-top:18px;background:var(--tint);border-radius:4px;padding:11px 14px;font-size:13px;display:flex;justify-content:space-between;gap:16px;align-items:center}
+.col h3{margin-bottom:6px;font-size:15px}
+.col li{margin-bottom:5px}
+.repo{margin-top:10px;background:var(--tint);border-radius:4px;padding:9px 14px;font-size:12.5px;display:flex;justify-content:space-between;gap:16px;align-items:center}
 .repo a{color:var(--apertus);text-decoration:none;font-weight:600}
 .repo a:focus-visible{outline:2px solid var(--apertus);outline-offset:2px}
 
@@ -207,18 +207,18 @@ tr.repro td.num{font-style:normal}
     <div class="arr">&rarr;</div>
     <div class="step a"><span class="n">4 · apertus</span><h3>Plan</h3><p>Reads table and hints with a fixed decision order: unsafe, not there, cannot, ambiguous, plan. Decides plan / ask / refuse. Output constrained to a per-scene schema.</p></div>
     <div class="arr">&rarr;</div>
-    <div class="step a"><span class="n">5 · apertus, ≤ 2&times;</span><h3>Self-check</h3><p>Only when the answer contradicts a hint fact (asks with one match, refuses a listed object, plans an unsafe verb, picks the bottom of a stack). Apertus sees its answer and the contradiction, answers again.</p></div>
+    <div class="step a"><span class="n">5 · apertus, ≤ 3&times;</span><h3>Self-check</h3><p>Only when the answer contradicts a hint fact (asks with one match, refuses a listed object, plans an unsafe verb, picks the bottom of a stack, moves an excluded object, drops the destination). The message names the correction; Apertus answers again.</p></div>
     <div class="arr">&rarr;</div>
-    <div class="step p"><span class="n">6 · python</span><h3>Render</h3><p>Steps expanded to the submission format. In questions and reasons every internal name becomes a description a person can act on, built from the same geometry.</p></div>
+    <div class="step p"><span class="n">6 · python</span><h3>Render</h3><p>Steps expanded to the submission format; a set-aside becomes a place on the table. In questions and reasons every internal name becomes a description a person can act on, built from the same geometry.</p></div>
   </div>
   <div class="legend">
-    <span><span class="sw" style="background:var(--apertus)"></span>Apertus v1.5 8B, text-only, Q4_K_M in Ollama (5 GB)</span>
+    <span><span class="sw" style="background:var(--apertus)"></span>Apertus v1.5 8B text-only: community Q4_K_M GGUF (hf.co/Colby) of the swiss-ai weights, in Ollama, 5 GB</span>
     <span><span class="sw" style="background:var(--vision)"></span>open vision model, sees only</span>
     <span><span class="sw" style="background:var(--python)"></span>Python, no model</span>
   </div>
   <div class="calls">
-    <div class="call a"><h3>Apertus makes every decision</h3>Plan, ask or refuse is always Apertus' call, once per instruction. Nothing in Python decides an answer type; the self-check only shows Apertus a contradiction and lets it answer again.</div>
-    <div class="call"><h3>Python only does geometry and rendering</h3>Counting matches, left/right/closest, what lies on what, which tray: computed from coordinates and written into the prompt as hints, so Apertus does not have to do arithmetic.</div>
+    <div class="call a"><h3>Apertus writes every answer, Python keeps it on the rails</h3>Plan, ask or refuse is always parsed from an Apertus reply; no Python path emits an answer type. But the hints name the resolved object and the rule that applies, and a check message names the correction. Measured: first replies alone 50.4 / 65, with the check rounds 65.0.</div>
+    <div class="call"><h3>Python does geometry, rules and rendering</h3>Counting matches, left/right/closest, what lies on what, which tray, what is excluded, where things go: computed from coordinates and written into the prompt as hints, so Apertus does not have to do arithmetic.</div>
     <div class="call"><h3>Constrained decoding, per-scene schema</h3>The grammar admits pick/place steps only over the names in this scene, or exactly one question, or exactly one refusal. No malformed answers, no invented objects.</div>
   </div>
   <div class="foot"><span>Apertus-2A-ZHAW · See It, Say It, Pick It</span><span>2 / 5</span></div>
@@ -227,7 +227,7 @@ tr.repro td.num{font-style:normal}
 <!-- 3 -->
 <div class="frame"><section class="slide s3">
   <div class="eyebrow">Results · dev set, 50 instructions, script part (max 65)</div>
-  <h2>From 20.4 to 65.0 in eight runs</h2>
+  <h2>From 20.4 to 65.0 in nine runs</h2>
   <table>
     <thead><tr><th>Date</th><th>Machine</th><th>Change</th><th class="num">Grounding</th><th class="num">Safety</th><th class="num">Plans wrongly refused/asked</th><th class="num">Total</th></tr></thead>
     <tbody>
@@ -240,6 +240,7 @@ tr.repro td.num{font-style:normal}
       <tr><td>15.10</td><td>Win11</td><td>questions and reasons rendered with object descriptions; wrong "not there" reasons re-checked</td><td class="num">38/40</td><td class="num">29.2</td><td class="num">1/40</td><td class="num">62.5</td></tr>
       <tr class="final"><td>15.10</td><td>Win11</td><td>machine parts by size (layout pass, merged fragments); size words bound to their phrase; "put X under Y" plan check; two self-check rounds; fixed seed</td><td class="num">40/40</td><td class="num">30.0</td><td class="num">0/40</td><td class="num">65.0</td></tr>
       <tr class="repro"><td>15.10</td><td>Linux aarch64, 2nd box</td><td>reproduction: fresh clone, <code>./setup.sh dev</code>, same code and models, 638 s for all 50; one answer flipped (scene_09_i3 asked instead of planned)</td><td class="num">39/40</td><td class="num">29.2</td><td class="num">1/40</td><td class="num">63.4</td></tr>
+      <tr class="final"><td>15.10</td><td>Win11</td><td>after an internal review of the plans the scorer does not read: set-aside rendered as a place (no pick-pick), "except X" enforced, destination check, direction inside a container, third check round; 31 of 90 instructions re-asked</td><td class="num">40/40</td><td class="num">30.0</td><td class="num">0/40</td><td class="num">65.0</td></tr>
     </tbody>
   </table>
   <p class="formula">Script score = 35 &times; grounding/40 + 30 &times; (no-plan right/10) &times; (plans not refused/40). The 35 jury points (pipeline logic 20, runs locally 10, code quality 5) are not in this table. All runs: Apertus v1.5 8B Q4_K_M, qwen3.5 9B vision, temperature 0, schema-constrained decoding. The last row is the submitted code rerun from scratch on another machine (Ollama 0.40.4): the one difference is the non-determinism noted on slide 5.</p>
@@ -247,7 +248,7 @@ tr.repro td.num{font-style:normal}
     <div><span class="d">20.4 &rarr; 32.2</span><span><strong>Decision order + hints.</strong> Apertus stopped refusing objects that are in the list and started planning relative instructions once the geometry was done for it. Multistep from 20% to 70%.</span></div>
     <div><span class="d">32.2 &rarr; 54.9</span><span><strong>Abstract answer forms + self-check.</strong> Concrete examples were copied verbatim ("there is no blue cube" to refuse a red cube). Removed. The check fired on 2 of 50 instructions and fixed both.</span></div>
     <div><span class="d">62.5 &rarr; 65.0</span><span><strong>Machine parts by size.</strong> The last two misses were vision labels: layout pass asks for the parts, fragments merged, each part relabelled by the long side of its box.</span></div>
-    <div><span class="d">stability</span><span><strong>Two check rounds.</strong> A correction can go too far (a stacking fix answered with a refusal); the second round sees a refusal with nothing unsafe or missing and asks for the plan.</span></div>
+    <div><span class="d">plan quality</span><span><strong>Review fixes, score unchanged.</strong> Eight plans had two picks in a row, three moved an "except" object, two dropped the destination: now hints + check rules, up to three rounds. First replies alone: 50.4.</span></div>
   </div>
   <div class="foot"><span>Apertus-2A-ZHAW · See It, Say It, Pick It</span><span>3 / 5</span></div>
 </section></div>
@@ -260,7 +261,7 @@ tr.repro td.num{font-style:normal}
     <thead><tr><th>What Apertus 8B does</th><th>Seen as</th><th>How the pipeline compensates</th></tr></thead>
     <tbody>
       <tr><td>Asks "which X" when the table holds exactly one X, and refuses listed objects as "not there"</td><td>"Which yellow gear?" with one yellow gear</td><td>Hints state how many objects match each phrase; the self-check re-asks when the answer contradicts that fact.</td></tr>
-      <tr><td>Ignores stacking stated in the table and picks the bottom object first</td><td>"red_cube lies on top of red_gear_2", plan picks red_gear_2</td><td>Stacking check and "put X under Y" plan check in the self-check; the top object must be moved first.</td></tr>
+      <tr><td>Ignores stacking stated in the table, drops a move in longer plans, moves an "except" object</td><td>"red_cube lies on top of red_gear_2", plan picks red_gear_2; a set-aside part never reaches the tray</td><td>Stacking, "put X under Y", destination and "except" checks in the self-check; a set-aside is rendered as a place on the table.</td></tr>
       <tr><td>Copies any concrete example in the prompt, with its names and reasons</td><td>"there is no blue cube" as the reason to refuse a red cube</td><td>No examples in the prompt; abstract answer forms only. Output names restricted to this scene by the schema.</td></tr>
       <tr><td>Plans the first candidate for a bare ambiguous instruction</td><td>"pick up the red gear" with three red gears &rarr; red_gear_1</td><td>Hint lists all matches; the self-check challenges a plan when several objects match.</td></tr>
       <tr><td>Invents physics</td><td>"the yellow gear is wider than 85 mm", "the grey part is not movable"</td><td>Gripper and unpickable facts come from the hints; a refusal with nothing unsafe or missing in the hints is re-asked, "no clue" refusals are steered to a question.</td></tr>
@@ -302,14 +303,14 @@ tr.repro td.num{font-style:normal}
       <h3>Known limits</h3>
       <ul>
         <li><strong>Non-determinism:</strong> Ollama is not bit-for-bit repeatable at temperature 0 and a fixed seed; two full runs can differ in one answer. A fresh clone on a second machine (Linux aarch64) scored 63.4: "pick up the object lying on the grey part" was asked instead of planned. Mitigated by the second self-check round and <code>--reuse</code>, which replays logged replies where table and hints are unchanged.</li>
-        <li><strong>Held-out pixels</strong> cannot be checked locally; only the answer types are (32/32 plans, 8/8 no-plan).</li>
-        <li>Resolve step uses a small synonym list; a new object vocabulary needs entries.</li>
+        <li><strong>Held-out:</strong> pixels cannot be checked locally, only the answer types (32/32 plans, 8/8 no-plan, from the published labels). The resolver's synonyms and cues were extended on the published held-out wording after its release (disclosed in README and report): weaker evidence than a blind run.</li>
+        <li>Black tray missing from the vision table in 7 of 15 scenes; unsafe detection is a keyword list; refusal labels sometimes wrong.</li>
       </ul>
     </div>
   </div>
   <div class="repo">
     <span><strong>Code:</strong> <a href="https://github.com/jdawnduan/Apertus-2A-ZHAW">github.com/jdawnduan/Apertus-2A-ZHAW</a> · Apache-2.0 · README: committed answers re-score in 2 min, full rerun ~45 min on a 5 GB GPU, 11 min on the second box</span>
-    <span class="mono">results.json · results_heldout.json · attempts/README.md</span>
+    <span class="mono">results.json · results_heldout.json · docs/REPORT.md · attempts/README.md</span>
   </div>
   <div class="foot"><span>Apertus-2A-ZHAW · See It, Say It, Pick It</span><span>5 / 5</span></div>
 </section></div>

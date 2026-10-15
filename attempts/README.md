@@ -29,10 +29,14 @@ vision model, temperature 0, schema-constrained decoding.
 | 15.10 | Win11 | questions and reasons rendered with object descriptions; wrong "not there" reasons re-checked | 38/40 | 29.2 | 1/40 | 62.5 |
 | 15.10 | Win11 | machine parts: layout pass asks for them, fragments merged, relabelled by size; size words bound to their own phrase; "put X under Y" plan check; two self-check rounds; fixed seed | 40/40 | 30.0 | 0/40 | **65.0** |
 | 15.10 | Linux aarch64 (2nd box) | reproduction of the final code from a fresh clone (`./setup.sh dev`, Ollama 0.40.4, 638 s): scene_09_i3 "pick up the object lying on the grey part" asked instead of planned, the other 49 answers identical | 39/40 | 29.2 | 1/40 | 63.4 |
+| 15.10 | Win11 | after an internal review of the plans beyond the first pick: set-aside moves rendered as a place on the table (no two picks in a row), "except X" enforced, a destination named in the instruction is checked, a put-destination is no longer used as a filter ("put both fruits on the plate"), a direction inside a container is applied ("at the top of the grey tray"), three check rounds, concave-shape pixel rule (banana 3 px from the edge -> 70 px); 31 instructions re-asked, the rest reused | 40/40 | 30.0 | 0/40 | **65.0** |
 
 Held-out set (`results_heldout.json`, 40 instructions, category labels only): 32 of 32 plan
-instructions answered with a plan, 8 of 8 no-plan instructions with the right type. Pixel correctness
-cannot be checked locally.
+instructions answered with a plan, 8 of 8 no-plan instructions with the right type (we computed this
+from the published labels; the pipeline does not read them). Pixel correctness cannot be checked
+locally. The self-check fired on 11 of 40 held-out instructions, 4 needed a second round and 2 a third.
+Note that the resolver's synonym and spatial-cue rules were extended on the held-out wording after its
+release (see "What we disclose" in the top-level README).
 
 Two full runs with the same code are not bit-for-bit identical on this machine (Ollama, partly
 CPU-offloaded 8B model, temperature 0 and a fixed seed): one held-out answer and one dev answer flipped
@@ -55,6 +59,14 @@ replies when only rendering or a check message changed.
   the plate's box is dropped (the plate is a large white object too).
 - **Two self-check rounds**: on a rerun Apertus answered the stacking correction ("pick the cube first")
   with a refusal; the second round sees a refusal with nothing unsafe or missing and asks for the plan.
+- **Review fixes (plan quality, script score unchanged at 65.0)**: a read-only review of the committed
+  plans found errors the scorer cannot see. Eight plans had two picks in a row because a set-aside
+  ("place none") was dropped; now it is a place on the table. "Except X" was not enforced: the excluded
+  object was picked at the end of three plans. Two held-out plans dropped the destination, "put both
+  fruits on the plate" lost the mandarin (the destination was used as a filter), "at the top of the grey
+  tray" chose the lower gear. Each became a hint plus a check rule; the affected instructions were
+  re-asked with `--reuse`, 31 of 90 in total. A third check round fixed held_04_i4, where the yellow gear
+  on a red gear was never moved within two rounds.
 
 ## Where Apertus still has difficulty (material for the report)
 
@@ -68,7 +80,12 @@ replies when only rendering or a check message changed.
 6. A correction can push it too far: told that the cube lies on the gear and must be moved first, it
    refuses ("unsafe: the cube must be removed first") instead of adding the move.
 7. Wrong reasons on right decisions: "NOT THERE: the red gear is in the list, so it is there" for a
-   self-contradictory instruction; it needs the real reason quoted to state it.
+   self-contradictory instruction; it needs the real reason quoted to state it. Even quoted, the rule
+   label can stay wrong ("NOT THERE: ... nothing fits inside it: impossible (rule 3)" after three rounds).
+8. It drops moves in longer plans: "put everything except the plate in the grey tray" with the grey part
+   lying on the red gear: the part is set aside and never put in the tray; "put both red gears in the
+   grey tray" with the yellow gear on one of them: the yellow gear is never moved. Told which object never
+   reaches the destination, it adds the move.
 
 ## Vision model limits (qwen3.5 9B at 1024 px)
 

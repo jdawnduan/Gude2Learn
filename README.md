@@ -62,7 +62,7 @@ The manual steps follow.
 | A GPU is optional | 5 GB VRAM was enough for every number in this repository; more VRAM only makes it faster. CPU-only is untested |
 | ~20 GB free disk | 12 GB of models, 5 GB of data and photos, the Python environment |
 | Internet once | to install uv and Ollama and to pull the two models; the runs themselves are offline |
-| `git`, `uv`, `ollama` on the PATH, Ollama running | `ollama serve` or the desktop app; `ollama list` must answer |
+| `git`, `uv`, `ollama` on the PATH, Ollama running | `ollama serve` or the desktop app; `ollama list` must answer. Tested with Ollama 0.40.3 and 0.40.4 |
 
 | Step | Time |
 |---|---|
@@ -102,6 +102,12 @@ ollama pull hf.co/Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF   # Apertus v1.5 8B, te
 ollama pull qwen3.5:9b                                       # open vision model, lists the objects, 7 GB
 ```
 
+Weight provenance: the Apertus build is a community GGUF quantisation (4-bit, Q4_K_M, by the
+Hugging Face user Colby) of swiss-ai's Apertus v1.5 8B text model; nothing is fine-tuned. The
+multimodal Apertus v1.5 needs a vLLM fork and about 20 GB of memory, which is why the text-only
+build plus a separate open vision model is used. `qwen3.5:9b` is the Ollama library build of
+Qwen 3.5 9B. Ollama 0.40.3 (Windows) and 0.40.4 (Linux) were used for every committed number.
+
 - Apple Silicon: `ollama pull qwen3.5:9b-mlx` and add `--vision-model qwen3.5:9b-mlx` to the
   run commands.
 - Small GPU (5 GB or less): both models are partly offloaded to the CPU. That is the tested
@@ -131,7 +137,12 @@ The two-round self-check (step 5 below) is the mitigation.
 Useful flags: `--limit N` (first N instructions), `--reuse` (take replies from `<out>.raw.jsonl`
 where table and hints are unchanged, so a wording change reruns in seconds), `--no-hints` and
 `--no-check` (ablations), `--think` (Apertus reasons before answering; untested gain, slower),
-`--max-side` (photo size for the vision model, default 1024).
+`--max-side` (photo size for the vision model, default 1024), `--vision-model` and `--model`
+(the Ollama tags; the scene cache is keyed on the vision model and size), `--base-url`
+(Ollama, default `http://localhost:11434`), `--team` (the name written into the results file),
+`--no-schema` (plain JSON instead of schema-constrained decoding; expect malformed answers).
+The results file is rewritten after every instruction, so an interrupted run leaves a partial
+file and the next run reuses the cached scenes.
 
 `baseline/baseline.py` (Apertus alone, reading the photo) cannot run on this build: the
 text-only GGUF has no image path.
@@ -157,20 +168,48 @@ text-only GGUF has no image path.
 4. **Plan** (Apertus, once per instruction, text only): the table, the hints, a fixed decision
    order (unsafe, not there, cannot, ambiguous, plan) and abstract answer forms. Output is
    schema-constrained to pick/place steps over the names in this scene, or one question, or one
-   refusal; Python expands the steps into the submission format. Apertus makes every decision;
-   the hints only save it from doing geometry.
-5. **Self-check** (Apertus, only when needed, at most twice): if the answer contradicts a fact in
-   the hints (asks although one object matches, refuses an object that is listed, plans an unsafe
-   verb, picks the bottom object of a stack first), Apertus sees its own answer and the
-   contradiction and answers once more. A second round catches a correction that went too far,
-   such as a refusal where the first round asked for a reordered plan.
-6. **Render** (Python, no model): in a question or a refusal reason, every internal name is shown
-   as a description a person can act on, built from the same geometry: "Which red gear should I
-   pick up: the leftmost red gear (red_gear_1), the middle red gear (red_gear_2), or the rightmost
-   red gear (red_gear_3)?" The name stays in brackets so the reply can use it.
+   refusal; Python expands the steps into the submission format. Every answer is written by
+   Apertus and it can deviate from the hints, but the hints name the resolved object and the
+   rule that applies, so on most instructions Apertus confirms what Python worked out (see
+   "What we disclose" below for the measured share).
+5. **Self-check** (Apertus, only when needed, at most three rounds): if the answer contradicts a
+   fact in the hints (asks although one object matches, refuses an object that is listed, plans an
+   unsafe verb, picks the bottom object of a stack first, moves an object the instruction excludes,
+   leaves a moved object without the named destination), Apertus sees its own answer and the
+   contradiction and answers once more. The check message names the required correction; a later
+   round catches a correction that went too far, such as a refusal where the first round asked for
+   a reordered plan. The last reply stands even if it still contradicts a hint.
+6. **Render** (Python, no model): a "place none" that is followed by another pick is a set-aside
+   and is written as a place on the table, so a one-object gripper never gets two picks in a row.
+   In a question or a refusal reason, every internal name is shown as a description a person can
+   act on, built from the same geometry: "Which red gear should I pick up: the leftmost red gear
+   (red_gear_1), the middle red gear (red_gear_2), or the rightmost red gear (red_gear_3)?" The
+   name stays in brackets so the reply can use it.
 
 The pipeline never reads the category labels in `instructions.txt`; it sees only the photo and
 the instruction text.
+
+## What we disclose
+
+- **The resolver was extended on the held-out wording.** The organisers published the held-out
+  instructions and their category labels on 14 October. Between 14 and 15 October we added
+  synonym and spatial-cue rules so that every held-out wording resolves ("the gear that is not
+  red", "long yellow fruit", "just below the mug", "inside the small white part", "at the top of
+  the grey tray"), with the labels visible to us. The held-out answers are produced by the code
+  without reading the labels, but the resolver is tuned on the held-out text, so the held-out
+  score is weaker evidence of generalisation than a blind run would be. The "32 of 32 plans, 8 of
+  8 no-plan" figures were computed by us from the published labels; pixel correctness on the
+  held-out set is unknown.
+- **How much is Apertus, how much is Python.** Every answer is parsed from an Apertus reply and
+  no Python path emits an answer type, but the hints state the resolved object and the applicable
+  rule in words, and the self-check messages name the required correction. Measured on the final
+  traces: Apertus's first replies alone (no self-check) score 50.4 of 65 on the dev set; the
+  self-check rounds, which fired on 8 of the 50 instructions, add the rest. Without hints and checks the same model scores 20.4. The
+  pipeline is a small text model kept on the rails by deterministic code, not an 8B model that
+  understands the workcell on its own.
+- **Weights:** a community 4-bit GGUF of swiss-ai's Apertus v1.5 8B (text only) and Ollama's
+  build of Qwen 3.5 9B, both unmodified; see step 3 above.
+- **Known weaknesses** that the script score does not show are listed in `docs/REPORT.md`.
 
 ## What is in this repository
 

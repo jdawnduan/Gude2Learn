@@ -12,7 +12,7 @@ closest to the mug" is `red_gear_2`; "the blue cube" matches nothing; "the plate
 Apertus then decides, in a fixed order, whether the instruction is unsafe, names something absent, cannot
 be done, is ambiguous, or can be planned, and writes a pick/place plan, one question, or one refusal.
 When the answer contradicts a fact in the hints, it sees its own answer and the contradiction and answers
-once more (at most twice).
+once more (at most three rounds; the last reply stands).
 
 Dev set, script score out of 65 (grounding 35, safety 30):
 
@@ -23,6 +23,7 @@ Dev set, script score out of 65 (grounding 35, safety 30):
 | + abstract answer forms instead of examples, + self-check | 36/40 | 23.4 | 1/40 | 54.9 |
 | + stacking, "under", pronoun and no-clue checks | 38/40 | 29.2 | 1/40 | 62.5 |
 | + machine parts relabelled by size, second check round | 40/40 | 30.0 | 0/40 | 65.0 |
+| + review fixes: set-aside as a place, "except" and destination checks, third round | 40/40 | 30.0 | 0/40 | 65.0 |
 
 The run log is `attempts/README.md`; every raw reply of the final run is in `attempts/final_dev.raw.jsonl`.
 
@@ -59,18 +60,22 @@ Hence the second check round, which sees a refusal with nothing unsafe or missin
 
 **6. Three-move plans lose a move.** "Put the grey part under the red cube on the plate" needs: set the
 cube aside, part to the plate, cube on the part. Apertus gave: cube aside, part on the cube, part on the
-plate. The right objects, wrong order, destination dropped. The check now lists the three moves; it fired
-three times, once needing both rounds.
+plate. The right objects, wrong order, destination dropped. The check now lists the three moves; in the
+final run it fired on two dev instructions and both needed two rounds. The same habit shows in flat plans:
+"put everything except the plate in the grey tray" set the grey part aside (it lay on the red gear) and
+never put it in the tray, and "put the two red gears in the grey tray" never moved the yellow gear lying on
+one of them; a destination check and a third round fixed both.
 
 **7. Corrections push it too far.** Any check message reads as "you were wrong, refuse": pattern 5 above,
 and a "cannot" hint turning a plan into "unsafe: ... rule 3". The decision is then right, the rule label
 wrong.
 
-The self-check fired on 9 of 50 dev instructions, one needed the second round. Without hints and checks
-the same code scores 20.4: the 8B model does not get there alone, and we do not claim it does. What it
-does reliably once the facts are in front of it: follow the schema (no malformed answer in 90), pick the
-right verb for unsafe instructions ("throw", "hit", "give me your hand"), keep plans to the named objects,
-and write a reason that uses the fact it was given.
+The self-check fired on 8 of 50 dev instructions (two needed a second round) and on 11 of 40 held-out
+instructions (two needed a third). Without hints and checks the same code scores 20.4: the 8B model does
+not get there alone, and we do not claim it does. What it does reliably once the facts are in front of
+it: follow the schema (no malformed answer in 90), pick the right verb for unsafe instructions ("throw",
+"hit", "give me your hand"), keep plans to the named objects, and write a reason that uses the fact it
+was given.
 
 ## Vision limits that cost Apertus points
 
@@ -87,6 +92,44 @@ runs differ in about one answer in fifty, always at the self-check boundary. A f
 machine (Linux aarch64, Ollama 0.40.4) scored 63.4: "pick up the object lying on the grey part" was asked
 instead of planned, the other 49 answers matched. The second round is the mitigation; the held-out file
 may differ by one answer in the same way.
+
+## What we disclose
+
+**The resolver was extended on the held-out wording.** The held-out instructions and their category labels
+were published on 14 October. Between 14 and 15 October we added synonym and spatial-cue rules so that every
+held-out wording resolves ("the gear that is not red", "long yellow fruit", "just below the mug", "inside the
+small white part", "at the top of the grey tray"), with the labels visible to us. The held-out answers are
+produced by the code without reading the labels, but the resolver is tuned on the held-out text, so the
+held-out score is weaker evidence of generalisation than a blind run would be. The "32 of 32 plans, 8 of 8
+no-plan" figures were computed by us from the published labels; pixel correctness is unknown.
+
+**How much is Apertus, how much is Python.** Every answer is parsed from an Apertus reply and no Python path
+emits an answer type. But the hints state the resolved object and the applicable rule in words ("exactly one
+object, so plan, do not ask"), and the self-check messages name the required correction. Apertus's first
+replies alone score 50.4 of 65 on the dev set; the check rounds add the rest; without hints and checks the
+same model scores 20.4. This is a small text model kept on the rails by deterministic code.
+
+**Weights.** A community 4-bit GGUF (Q4_K_M, Hugging Face user Colby) of swiss-ai's Apertus v1.5 8B text
+model and Ollama's build of Qwen 3.5 9B, both unmodified.
+
+## Known weaknesses the score does not show
+
+- **The black tray is missing from the vision table in 7 of 15 scenes**, even with the dedicated second
+  question. "From the black tray" then narrows nothing and the plan relies on "everything" coinciding.
+- **Unsafe and self-contradiction detection are keyword lists** ("throw", "without moving", ...), not physical
+  reasoning. "Pick up the red cube without moving the mug" would be refused even if the mug were elsewhere.
+- **Refusal rule labels are sometimes wrong** ("NOT THERE" for a request that is impossible, "unsafe" for a
+  self-contradiction) while the content of the reason is right. The scorer reads only the answer type; a
+  jury reads the label.
+- **Plans beyond the first pick are not scored**, and we found and fixed three systematic errors there on
+  15 October after an internal review: set-aside moves were emitted as two picks in a row, "except X" was not
+  enforced, and a destination named in the instruction could be dropped. The fixes are hint and check rules
+  plus the rendering of a set-aside as a place on the table; the affected instructions were re-asked.
+- **Target pixels** are the point of the colour blob inside the box nearest to the blob's centroid, or the
+  centre of the blob's largest inscribed circle when the centroid lies outside the filled outline (a banana).
+  Always taking the inscribed-circle centre was tried on 15 October and rejected: where the blob merges a
+  yellow gear with the red gear under it, that centre lands on the red gear (2 dev pixels lost). On a cube
+  lying on a same-coloured gear the blob is weak and the pixel falls back to the box centre.
 
 ## Not tried, expected to help
 

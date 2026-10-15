@@ -1,6 +1,6 @@
 {
  "held_01": {
-  "version": 5,
+  "version": 8,
   "raw": "{\n  \"objects\": [\n    {\n      \"name\": \"mandarin\",\n      \"bbox\": [\n        129,\n        613,\n        257,\n        760\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"yellow_gear\",\n      \"bbox\": [\n        354,\n        606,\n        438,\n        702\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"red_cube\",\n      \"bbox\": [\n        581,\n        613,\n        715,\n        764\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"red_gear\",\n      \"bbox\": [\n        729,\n        142,\n        875,\n        308\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"red_gear\",\n      \"bbox\": [\n        733,\n        360,\n        882,\n        531\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"red_gear\",\n      \"bbox\": [\n        737,\n        594,\n        889,\n        769\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"grey_tray\",\n      \"bbox\": [\n        0,\n        39,\n        526,\n        894\n      ],\n      \"on_top_of\": null\n    }\n  ]\n}",
   "layout": "{\"stacked\": [], \"trays\": [{\"name\": \"grey_tray\", \"bbox\": [0, 39, 526, 894]}, {\"name\": \"black_tray\", \"bbox\": [517, 0, 1000, 930]}], \"parts\": []}",
   "layout_v": 2,
@@ -225,10 +225,14 @@
   "size": [
    2448,
    2048
+  ],
+  "vision": [
+   "qwen3.5:9b",
+   1024
   ]
  },
  "held_02": {
-  "version": 5,
+  "version": 8,
   "raw": "{\n  \"objects\": [\n    {\n      \"name\": \"red_gear\",\n      \"bbox\": [\n        156,\n        273,\n        304,\n        446\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"red_gear\",\n      \"bbox\": [\n        125,\n        545,\n        279,\n        723\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"yellow_gear\",\n      \"bbox\": [\n        288,\n        514,\n        370,\n        609\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"mug\",\n      \"bbox\": [\n        784,\n        5,\n        945,\n        243\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"mandarin\",\n      \"bbox\": [\n        826,\n        217,\n        947,\n        357\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"banana\",\n      \"bbox\": [\n        542,\n        564,\n        875,\n        846\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"plate\",\n      \"bbox\": [\n        657,\n        362,\n        966,\n        728\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"saucer\",\n      \"bbox\": [\n        548,\n        98,\n        755,\n        334\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"grey_tray\",\n      \"bbox\": [\n        0,\n        41,\n        524,\n        892\n      ],\n      \"on_top_of\": null\n    }\n  ]\n}",
   "layout": "{\n\"stacked\": [],\n\"trays\": [\n  {\n    \"name\": \"grey_tray\",\n    \"bbox\": [\n      0,\n      39,\n      524,\n      891\n    ]\n  }\n],\n\"parts\": []\n}",
   "layout_v": 2,
@@ -480,10 +484,14 @@
   "size": [
    2448,
    2048
+  ],
+  "vision": [
+   "qwen3.5:9b",
+   1024
   ]
  },
  "held_03": {
-  "version": 5,
+  "version": 8,
   "raw": "{\n  \"objects\": [\n    {\n      \"name\": \"grey_tray\",\n      \"bbox\": [\n        0,\n        39,\n        524,\n        891\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"mug\",\n      \"bbox\": [\n        678,\n        132,\n        889,\n        325\n      ],\n      \"on_top_of\": \"black_tray\"\n    },\n    {\n      \"name\": \"plate\",\n      \"bbox\": [\n        656,\n        490,\n        970,\n        861\n      ],\n      \"on_top_of\": \"black_tray\"\n    },\n    {\n      \"name\": \"red_gear\",\n      \"bbox\": [\n        548,\n        360,\n        697,\n        532\n      ],\n      \"on_top_of\": \"black_tray\"\n    },\n    {\n      \"name\": \"yellow_gear\",\n      \"bbox\": [\n        556,\n        641,\n        638,\n        736\n      ],\n      \"on_top_of\": \"black_tray\"\n    },\n    {\n      \"name\": \"white_part\",\n      \"bbox\": [\n        715,\n        369,\n        852,\n        480\n      ],\n      \"on_top_of\": \"black_tray\"\n    },\n    {\n      \"name\": \"grey_part\",\n      \"bbox\": [\n        778,\n        61,\n        970,\n        235\n      ],\n      \"on_top_of\": \"black_tray\"\n    },\n    {\n      \"name\": \"grey_part\",\n      \"bbox\": [\n        881,\n        274,\n        979,\n        528\n      ],\n      \"on_top_of\": \"black_tray\"\n    }\n  ]\n}",
   "layout": "{\n\"stacked\": [],\n\"trays\": [\n  {\n    \"name\": \"grey_tray\",\n    \"bbox\": [\n      0,\n      39,\n      524,\n      891\n    ]\n  }\n],\n\"parts\": [\n  {\n    \"name\": \"grey_part\",\n    \"bbox\": [\n      776,\n      59,\n      970,\n      234\n    ]\n  },\n  {\n    \"name\": \"grey_part\",\n    \"bbox\": [\n      881,\n      274,\n      979,\n      528\n    ]\n  }\n]\n}",
   "layout_v": 2,
@@ -708,10 +716,14 @@
   "size": [
    2448,
    2048
+  ],
+  "vision": [
+   "qwen3.5:9b",
+   1024
   ]
  },
  "held_04": {
-  "version": 5,
+  "version": 8,
   "raw": "{\n  \"objects\": [\n    {\n      \"name\": \"mandarin\",\n      \"bbox\": [\n        129,\n        613,\n        254,\n        760\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"plate\",\n      \"bbox\": [\n        564,\n        58,\n        869,\n        405\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"red_cube\",\n      \"bbox\": [\n        793,\n        412,\n        939,\n        588\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"red_gear\",\n      \"bbox\": [\n        658,\n        609,\n        810,\n        788\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"red_gear\",\n      \"bbox\": [\n        874,\n        439,\n        982,\n        605\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"yellow_gear\",\n      \"bbox\": [\n        658,\n        687,\n        743,\n        786\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"grey_tray\",\n      \"bbox\": [\n        0,\n        41,\n        524,\n        892\n      ],\n      \"on_top_of\": null\n    }\n  ]\n}",
   "layout": "{\n\"stacked\": [\n\t{\n\t\t\"top\": \"red_cube\",\n\t\t\"under\": \"red_gear\"\n\t},\n\t{\n\t\t\"top\": \"yellow_gear\",\n\t\t\"under\": \"red_gear\"\n\t}\n],\n\"trays\": [\n\t{\n\t\t\"name\": \"grey_tray\",\n\t\t\"bbox\": [\n\t\t\t0,\n\t\t\t41,\n\t\t\t526,\n\t\t\t893\n\t\t]\n\t},\n\t{\n\t\t\"name\": \"black_tray\",\n\t\t\"bbox\": [\n\t\t\t526,\n\t\t\t1,\n\t\t\t1000,\n\t\t\t934\n\t\t]\n\t}\n],\n\"parts\": [\n\t{\n\t\t\"name\": \"white_part\",\n\t\t\"bbox\": [\n\t\t\t564,\n\t\t\t58,\n\t\t\t867,\n\t\t\t405\n\t\t]\n\t}\n]\n}",
   "layout_v": 2,
@@ -940,10 +952,14 @@
   "size": [
    2448,
    2048
+  ],
+  "vision": [
+   "qwen3.5:9b",
+   1024
   ]
  },
  "held_05": {
-  "version": 5,
+  "version": 8,
   "raw": "{\n  \"objects\": [\n    {\n      \"name\": \"grey_tray\",\n      \"bbox\": [\n        0,\n        39,\n        526,\n        894\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"red_gear\",\n      \"bbox\": [\n        547,\n        359,\n        691,\n        532\n      ],\n      \"on_top_of\": \"grey_tray\"\n    },\n    {\n      \"name\": \"yellow_gear\",\n      \"bbox\": [\n        740,\n        628,\n        829,\n        725\n      ],\n      \"on_top_of\": \"plate\"\n    },\n    {\n      \"name\": \"mug\",\n      \"bbox\": [\n        703,\n        181,\n        918,\n        369\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"plate\",\n      \"bbox\": [\n        654,\n        492,\n        970,\n        861\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"grey_part\",\n      \"bbox\": [\n        623,\n        438,\n        845,\n        550\n      ],\n      \"on_top_of\": \"red_gear\"\n    },\n    {\n      \"name\": \"white_part\",\n      \"bbox\": [\n        719,\n        369,\n        852,\n        450\n      ],\n      \"on_top_of\": null\n    }\n  ]\n}",
   "layout": "{\n\"stacked\": [\n  {\n    \"top\": \"yellow_gear\",\n    \"under\": \"plate\"\n  },\n  {\n    \"top\": \"grey_part\",\n    \"under\": \"red_gear\"\n  }\n],\n\"trays\": [\n  {\n    \"name\": \"grey_tray\",\n    \"bbox\": [\n      0,\n      41,\n      526,\n      893\n    ]\n  }\n],\n\"parts\": [\n  {\n    \"name\": \"grey_part\",\n    \"bbox\": [\n      624,\n      437,\n      848,\n      551\n    ]\n  },\n  {\n    \"name\": \"white_part\",\n    \"bbox\": [\n      656,\n      490,\n      969,\n      863\n    ]\n  },\n  {\n    \"name\": \"small_part\",\n    \"bbox\": [\n      718,\n      369,\n      852,\n      450\n    ]\n  }\n]\n}",
   "layout_v": 2,
@@ -1145,6 +1161,10 @@
   "size": [
    2448,
    2048
+  ],
+  "vision": [
+   "qwen3.5:9b",
+   1024
   ]
  }
 }

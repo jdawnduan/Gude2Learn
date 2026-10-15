@@ -1,7 +1,7 @@
 [project]
 name = "see-it-say-it-pick-it"
 version = "0.1.0"
-description = "Add your description here"
+description = "See It, Say It, Pick It (Hack Apertus 2026, ZHAW): photo + instruction -> robot plan, question or refusal; Apertus 8B plans, an open vision model sees, Python does the geometry"
 readme = "README.md"
 authors = [
     { name = "Dawn", email = "jiaxin.duan@psi.ch" }

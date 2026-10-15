@@ -223,14 +223,6 @@
             1179,
             967
           ]
-        },
-        {
-          "action": "pick",
-          "object": "red_cube",
-          "pixel": [
-            1591,
-            1420
-          ]
         }
       ]
     },
@@ -271,16 +263,16 @@
     {
       "instruction_id": "held_02_i3",
       "target_pixel": [
-        492,
-        1303
+        561,
+        737
       ],
       "actions": [
         {
           "action": "pick",
-          "object": "red_gear_2",
+          "object": "red_gear_1",
           "pixel": [
-            492,
-            1303
+            561,
+            737
           ]
         }
       ]
@@ -288,10 +280,26 @@
     {
       "instruction_id": "held_02_i4",
       "target_pixel": [
-        1628,
-        1430
+        2175,
+        584
       ],
       "actions": [
+        {
+          "action": "pick",
+          "object": "mandarin",
+          "pixel": [
+            2175,
+            584
+          ]
+        },
+        {
+          "action": "place",
+          "object": "plate",
+          "pixel": [
+            1995,
+            1114
+          ]
+        },
         {
           "action": "pick",
           "object": "banana",
@@ -353,6 +361,14 @@
           ]
         },
         {
+          "action": "place",
+          "object": "plate",
+          "pixel": [
+            1995,
+            1114
+          ]
+        },
+        {
           "action": "pick",
           "object": "red_gear_2",
           "pixel": [
@@ -361,11 +377,11 @@
           ]
         },
         {
-          "action": "pick",
-          "object": "yellow_gear",
+          "action": "place",
+          "object": "plate",
           "pixel": [
-            805,
-            1153
+            1995,
+            1114
           ]
         }
       ]
@@ -410,6 +426,14 @@
           "pixel": [
             1524,
             916
+          ]
+        },
+        {
+          "action": "place",
+          "object": "plate",
+          "pixel": [
+            1997,
+            1387
           ]
         }
       ]
@@ -664,6 +688,10 @@
           ]
         },
         {
+          "action": "place",
+          "object": "table"
+        },
+        {
           "action": "pick",
           "object": "red_gear_1",
           "pixel": [
@@ -700,24 +728,28 @@
     {
       "instruction_id": "held_04_i4",
       "target_pixel": [
-        2104,
-        1009
+        1743,
+        1510
       ],
       "actions": [
         {
           "action": "pick",
-          "object": "red_cube",
+          "object": "yellow_gear",
           "pixel": [
-            2104,
-            1009
+            1743,
+            1510
           ]
         },
         {
+          "action": "place",
+          "object": "table"
+        },
+        {
           "action": "pick",
-          "object": "red_gear_1",
+          "object": "red_gear_2",
           "pixel": [
-            2194,
-            1025
+            1797,
+            1467
           ]
         },
         {
@@ -730,10 +762,10 @@
         },
         {
           "action": "pick",
-          "object": "red_gear_2",
+          "object": "red_gear_1",
           "pixel": [
-            1797,
-            1467
+            2194,
+            1025
           ]
         },
         {
@@ -965,6 +997,26 @@
           "pixel": [
             1975,
             1050
+          ]
+        },
+        {
+          "action": "place",
+          "object": "table"
+        },
+        {
+          "action": "pick",
+          "object": "grey_part",
+          "pixel": [
+            1975,
+            1050
+          ]
+        },
+        {
+          "action": "place",
+          "object": "grey_tray",
+          "pixel": [
+            1179,
+            963
           ]
         },
         {

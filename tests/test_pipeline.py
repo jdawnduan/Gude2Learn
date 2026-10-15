@@ -101,7 +101,11 @@ def test_answer(objs):
     ans = to_answer('{"actions": [{"pick": "red_gear_2", "place": "grey_tray"}, {"pick": "mug", "place": "none"}]}', objs, "x")
     by = {o["name"]: o for o in objs}
     assert ans["target_pixel"] == by["red_gear_2"]["centre"] and answer_type(ans) == ("plan", None)
-    assert [a["action"] for a in ans["actions"]] == ["pick", "place", "pick"]
+    assert [a["action"] for a in ans["actions"]] == ["pick", "place", "pick"]   # a final bare pick stays a pick
+    # a set-aside before another pick is put down on the table: no two picks in a row for a one-object gripper
+    ans = to_answer('{"actions": [{"pick": "yellow_gear", "place": "none"}, {"pick": "red_gear_2", "place": "grey_tray"}]}', objs, "x")
+    assert [(a["action"], a["object"]) for a in ans["actions"]] == \
+        [("pick", "yellow_gear"), ("place", "table"), ("pick", "red_gear_2"), ("place", "grey_tray")]
     ans = to_answer('{"actions": [{"refuse": "no blue cube"}]}', objs, "x")
     assert ans["target_pixel"] is None and answer_type(ans) == ("refuse", None)
     ans = to_answer('{"actions": [{"pick": "grey_tray", "place": "plate"}]}', objs, "x")  # unpickable -> fallback
@@ -118,14 +122,46 @@ def test_answer(objs):
     hints = resolve("pick up the red gear", objs)   # no clue -> a plan must be challenged
     assert check(to_answer('{"actions": [{"pick": "red_gear_1", "place": "none"}]}', objs, "x"), hints, objs)
     assert any("no clue" in h for h in resolve("give me that one", objs))
-    assert any("no clue" in h for h in resolve("take it off the gear", objs))
+    assert any("no clue" in h for h in resolve("move it away from the mug", objs))   # pronoun target, a noun as reference
     assert not any("exactly one" in h for h in resolve("take it off the mug", objs))
     hints = resolve("give me that one", objs)   # a refusal here must be steered to a question, not a plan
     issues = check(to_answer('{"actions": [{"refuse": "not there"}]}', objs, "x"), hints, objs)
     assert issues and "ask" in issues[0]
     hints = resolve("pick up the red gear closest to the mug", objs)   # resolved to red_gear_2, plan picks the mug
     assert check(to_answer('{"actions": [{"pick": "mug", "place": "none"}]}', objs, "x"), hints, objs)
-    hints = resolve("put all the red gears in the black tray except the one on the right", objs)
+    # "except X": X is excluded from the set and a plan that moves it anyway is challenged
+    flat = scene_table({"objects": [{"name": "red_gear", "bbox": [100, 450, 160, 500], "on_top_of": None},
+                                    {"name": "red_gear", "bbox": [200, 450, 260, 500], "on_top_of": None},
+                                    {"name": "yellow_gear", "bbox": [600, 450, 640, 490], "on_top_of": None},
+                                    {"name": "black_tray", "bbox": [50, 50, 500, 300], "on_top_of": None}]}, 1000, 1000)
+    hints = resolve("put all the gears in the black tray except the yellow one", flat)
+    assert any(h.startswith('"except": yellow_gear') for h in hints)
+    assert "yellow_gear" not in [h for h in hints if "all of them" in h][0].split(" = ")[1]
+    issues = check(to_answer('{"actions": [{"pick": "red_gear_1", "place": "black_tray"}, {"pick": "red_gear_2", "place": "black_tray"}, '
+                             '{"pick": "yellow_gear", "place": "black_tray"}]}', flat, "x"), hints, flat)
+    assert issues and "except yellow_gear" in issues[0]
+    assert not check(to_answer('{"actions": [{"pick": "red_gear_1", "place": "black_tray"}, {"pick": "red_gear_2", "place": "black_tray"}]}',
+                               flat, "x"), hints, flat)
+    # ... unless it lies on an object that must be moved and has to be set aside first (yellow_gear on red_gear_2 in `objs`)
+    hints = resolve("put all the gears in the black tray except the yellow one", objs)
+    assert not check(to_answer('{"actions": [{"pick": "red_gear_1", "place": "black_tray"}, {"pick": "yellow_gear", "place": "none"}, '
+                               '{"pick": "red_gear_2", "place": "black_tray"}]}', objs, "x"), hints, objs)
+    # with a put-verb "on the plate" / "in the black tray" is the destination, not a filter; "from the grey tray" filters
+    hints = resolve("put both red gears in the black tray", objs)
+    assert any("all of them) = red_gear_1, red_gear_2" in h for h in hints) and any(h.startswith('Destination "black tray" = black_tray') for h in hints)
+    issues = check(to_answer('{"actions": [{"pick": "red_gear_1", "place": "black_tray"}, {"pick": "red_gear_2", "place": "none"}]}', objs, "x"), hints, objs)
+    assert any("destination is black_tray" in i and "red_gear_2" in i for i in issues)
+    assert not check(to_answer('{"actions": [{"pick": "red_gear_1", "place": "black_tray"}, {"pick": "yellow_gear", "place": "none"}, '
+                               '{"pick": "red_gear_2", "place": "black_tray"}]}', objs, "x"), hints, objs)
+    assert "red_gear_1" in [h for h in resolve("put the object from the grey tray in the black tray", objs) if "exactly one" in h][0]
+    assert not any(h.startswith("Destination") for h in resolve("put the red gear on the left on the plate and the mug in the black tray", objs))
+    assert not any(h.startswith("Destination") for h in resolve("pick up the red gear closest to the grey tray", objs))
+    # "at the top of the <container>": the one nearest that edge among those inside it
+    two = scene_table({"objects": [{"name": "red_gear", "bbox": [100, 450, 160, 500], "on_top_of": None},
+                                   {"name": "red_gear", "bbox": [100, 620, 160, 680], "on_top_of": None},
+                                   {"name": "grey_tray", "bbox": [50, 400, 300, 700], "on_top_of": None}]}, 1000, 1000)
+    assert "red_gear_1" in [h for h in resolve("pick up the red gear at the top of the grey tray", two) if "exactly one" in h][0]
+    assert "red_gear_2" in [h for h in resolve("pick up the red gear at the bottom of the grey tray", two) if "exactly one" in h][0]
     hints = resolve("put everything from the grey tray in the black tray", objs)  # = red_gear_1 only; mug is extra
     assert check(to_answer('{"actions": [{"pick": "red_gear_1", "place": "black_tray"}, {"pick": "mug", "place": "black_tray"}]}', objs, "x"), hints, objs)
     hints = resolve("put both red gears and the mug in the black tray", objs)     # the mug is named too: not extra

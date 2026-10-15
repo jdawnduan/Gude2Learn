@@ -4,4 +4,6 @@
 !attempts/*.scenes.json
 !attempts/*.raw.jsonl
 __pycache__/
+.venv/
+.claude/
 .DS_Store

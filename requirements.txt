@@ -1,3 +1,5 @@
+# The organisers' starter file, kept for reference. Our pipeline is installed with `uv sync` from
+# pyproject.toml (Python 3.13, numpy, opencv-python) and talks to Ollama; it does not use vllm.
 # Python 3.11 recommended
 numpy
 opencv-python
