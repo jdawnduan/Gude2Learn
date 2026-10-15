@@ -7,3 +7,6 @@ __pycache__/
 .venv/
 .claude/
 .DS_Store
+# local helpers and the Devpost zip
+docs/*.sh
+docs/zip/
