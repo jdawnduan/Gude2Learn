@@ -158,7 +158,8 @@ set-aside in the scene_06_i2 plan and a different stacking reading in held_05. T
 fix, made on 15 October after this comparison, lets a part phrase fall back to the parts the
 camera did see also when the phrase is a reference, as it already did for the thing to pick;
 re-rendering the fresh Windows tables with that rule gives 65.0, and the committed answers are
-unchanged by it. A fresh run on the Linux box with the fix is still outstanding. On the Apertus
+unchanged by it. A fresh run on the Linux box with the fix (`./setup.sh dev` on the final code)
+scored 65.0, every category at 100%, so the four 63.4 runs are explained and closed. On the Apertus
 side, the self-check rounds (step 5 below) are the mitigation.
 
 Useful flags: `--limit N` (first N instructions), `--reuse` (take replies from `<out>.raw.jsonl`

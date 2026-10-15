@@ -40,6 +40,7 @@ vision model, temperature 0, schema-constrained decoding.
 | 15.10 | Win11 | fresh full run with no cache on this box (vision and Apertus from scratch, 1623 s dev, 1011 s held-out): scene_09_i3 asked instead of planned, because the vision model drew the grey part and the small part as one box; 13 of 15 tables otherwise identical to the committed ones | 39/40 | 29.2 | 1/40 | 63.4 |
 | 15.10 | Win11 | part-reference fallback: a part phrase with no matching label falls back to the parts seen also as a reference ("lying on the grey part"), not only as the thing to pick; the fresh Windows tables re-rendered with it (one re-ask); committed answers unchanged | 40/40 | 30.0 | 0/40 | 65.0 (fresh tables) |
 | 15.10 | Win11 | third review pass: the stacking check walks a chain to its top and lets a top object that the instruction moves go straight to the destination (held_05_i8 lost its redundant set-aside; two re-asks); the set-aside step carries no pixel after a measured attempt showed no verifiable bare-table spot in most scenes; prompt hash in every trace record so `--reuse` cannot replay a stale prompt; corrupt cache or trace files named instead of a traceback; setup-script fixes for bash 3.2 and PowerShell 5.1; tests split into named cases plus a stubbed end-to-end run of `main()` | 40/40 | 30.0 | 0/40 | **65.0** |
+| 15.10 | Linux aarch64 (2nd box) | fresh run of the final code (`./setup.sh dev`, part-reference fallback included): every category 100%; the first fresh run on either machine to match the committed answers | 40/40 | 30.0 | 0/40 | **65.0** |
 
 Ablations (same vision tables, final prompt, dev set): `--no-check` 50.4, which equals the first-reply score;
 `--no-hints` (which also disables the checks, since they test against the hints) 48.8, with relative at
@@ -60,7 +61,8 @@ white part of scene_09 were drawn as one box, so the table held no grey part. Th
 one of four where the vision model drew them apart. The rest of the vision tables agree across machines
 within a few pixels (13 of 15 scenes identical in names, stacks and trays), and the Apertus stage
 repeated its answers on the Linux box run after run. The part-reference fallback (last row above)
-resolves the merged-box table correctly; a fresh Linux run with it is still outstanding. The self-check
+resolves the merged-box table correctly, and a fresh Linux run of the final code scored 65.0 (last row
+above). The self-check
 rounds are the mitigation on the Apertus side; `--reuse` re-renders from the logged replies when only
 rendering or a check message changed, which is how the committed files were produced after the review
 fixes (31 of 90 re-asked).

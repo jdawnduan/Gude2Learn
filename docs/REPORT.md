@@ -79,7 +79,7 @@ parts relabelled by box size since the camera is fixed; the target pixel moved f
 the object by colour, or to the centre of the largest inscribed circle for a concave shape such as the
 banana. Apertus cannot repair a wrong label, so vision is its ceiling.
 
-## Nondeterminism: one vision box decides between 65.0 and 63.4
+## Nondeterminism: one vision box decided between 65.0 and 63.4
 
 Four full runs exist: the committed run on the Windows box (65.0), three runs of a fresh clone on a Linux
 aarch64 box (63.4, identical to each other), and a second fresh run on the Windows box with no cache
@@ -93,7 +93,8 @@ set-aside in one plan and one stacking reading in held_05); the Apertus stage re
 Linux box run after run. The fix, made after this comparison, lets a part phrase fall back to the parts
 the camera did see also when it is a reference, as it already did for the thing to pick; re-rendering the
 fresh Windows tables with that rule gives 65.0 and leaves the committed answers unchanged. A fresh Linux
-run of the final code is still outstanding. The committed files are a `--reuse` re-render: after the
+run of the final code on the Linux box then scored 65.0 with every category at 100%, so the 63.4 runs are
+explained and closed. The committed files are a `--reuse` re-render: after the
 review fixes, 31 of 90 instructions were re-asked, later passes a few more, and the other replies were
 replayed from the previous traces (the prompt is unchanged, and its hash is now in every trace record).
 
@@ -148,13 +149,12 @@ Not tried, expected to help, in the order we would do them:
 3. **An out-of-distribution check.** Ten new instructions in fresh wording ("the thing next to the cup",
    "the gear nearest the camera"), run once and inspected, to show what happens when a phrase is outside
    the synonym list. Honest either way.
-4. **A fresh Linux run of the final code**, to close the last provenance gap in the nondeterminism note.
-5. **Apertus 70B.** Patterns 1, 5, 6 and 7 are reasoning failures a larger model should make less often;
+4. **Apertus 70B.** Patterns 1, 5, 6 and 7 are reasoning failures a larger model should make less often;
    8B at 4 bit was chosen so the pipeline runs on a laptop.
-6. **Think mode** (`--think`, implemented, unmeasured, about twice the time per instruction).
-7. **A stronger or higher-resolution vision model** (`--max-side 1536`, or a 30B-class VLM), which would
+5. **Think mode** (`--think`, implemented, unmeasured, about twice the time per instruction).
+6. **A stronger or higher-resolution vision model** (`--max-side 1536`, or a 30B-class VLM), which would
    make the part-label and stacking code unnecessary.
-8. **Refusal labels and question choices.** Tell Apertus the expected rule label in the check message when
+7. **Refusal labels and question choices.** Tell Apertus the expected rule label in the check message when
    the reason contradicts the hint's rule, and exclude unpickable objects from "no clue" choices.
-9. **Code structure.** Split the one module into see, resolve, plan and render, with a small object
+8. **Code structure.** Split the one module into see, resolve, plan and render, with a small object
    dataclass; add a canned-reply CI run of `main()` beyond the two-instruction stub that exists now.
