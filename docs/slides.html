@@ -84,6 +84,8 @@ th,td{text-align:left;padding:4px 8px;border-bottom:1px solid var(--rule);vertic
 th{background:var(--tint);font-family:var(--display);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;color:var(--ink-2)}
 td.num,th.num{text-align:right;white-space:nowrap}
 tr.final td{font-weight:600;background:var(--apertus-bg)}
+tr.repro td{color:var(--ink-2);font-style:italic}
+tr.repro td.num{font-style:normal}
 
 /* ---------- slide 1 ---------- */
 .s1{justify-content:center;gap:22px}
@@ -116,9 +118,9 @@ tr.final td{font-weight:600;background:var(--apertus-bg)}
 .call.a{background:var(--apertus-bg)} .call.a h3{color:var(--apertus)}
 
 /* ---------- slide 3 ---------- */
-.s3 table{font-size:11.5px;margin-top:10px}
-.s3 td,.s3 th{padding:3.5px 8px}
-.fixes{display:grid;grid-template-columns:1fr 1fr;gap:6px 22px;margin-top:12px;font-size:12px}
+.s3 table{font-size:11px;margin-top:8px;line-height:1.3}
+.s3 td,.s3 th{padding:3px 8px}
+.fixes{display:grid;grid-template-columns:1fr 1fr;gap:5px 22px;margin-top:9px;font-size:11.5px}
 .fixes div{display:flex;gap:8px;align-items:baseline}
 .fixes .d{font-family:var(--display);font-weight:600;color:var(--apertus);white-space:nowrap;font-variant-numeric:tabular-nums;flex:0 0 96px}
 .formula{font-size:11px;color:var(--ink-2);margin-top:8px}
@@ -167,7 +169,7 @@ tr.final td{font-weight:600;background:var(--apertus-bg)}
     <div class="tile hero">
       <div class="lbl">Dev set, script score</div>
       <div class="big">20.4 <span class="arrow-up">&rarr;</span> 65.0 <small>of 65</small></div>
-      <div class="note">plain prompt on 14.10 &rarr; final pipeline on 15.10</div>
+      <div class="note">plain prompt on 14.10 &rarr; final pipeline on 15.10; fresh clone on a second machine: 63.4 (one answer flipped)</div>
     </div>
     <div class="tile">
       <div class="lbl">Grounding</div>
@@ -237,9 +239,10 @@ tr.final td{font-weight:600;background:var(--apertus-bg)}
       <tr><td>14.10</td><td>Win11</td><td>+ "no clue" refusals steered to a question, pronoun-object rule ("take it off the gear")</td><td class="num">38/40</td><td class="num">29.2</td><td class="num">1/40</td><td class="num">62.5</td></tr>
       <tr><td>15.10</td><td>Win11</td><td>questions and reasons rendered with object descriptions; wrong "not there" reasons re-checked</td><td class="num">38/40</td><td class="num">29.2</td><td class="num">1/40</td><td class="num">62.5</td></tr>
       <tr class="final"><td>15.10</td><td>Win11</td><td>machine parts by size (layout pass, merged fragments); size words bound to their phrase; "put X under Y" plan check; two self-check rounds; fixed seed</td><td class="num">40/40</td><td class="num">30.0</td><td class="num">0/40</td><td class="num">65.0</td></tr>
+      <tr class="repro"><td>15.10</td><td>Linux aarch64, 2nd box</td><td>reproduction: fresh clone, <code>./setup.sh dev</code>, same code and models, 638 s for all 50; one answer flipped (scene_09_i3 asked instead of planned)</td><td class="num">39/40</td><td class="num">29.2</td><td class="num">1/40</td><td class="num">63.4</td></tr>
     </tbody>
   </table>
-  <p class="formula">Script score = 35 &times; grounding/40 + 30 &times; (no-plan right/10) &times; (plans not refused/40). The 35 jury points (pipeline logic 20, runs locally 10, code quality 5) are not in this table. All runs: Apertus v1.5 8B Q4_K_M, qwen3.5 9B vision, temperature 0, schema-constrained decoding.</p>
+  <p class="formula">Script score = 35 &times; grounding/40 + 30 &times; (no-plan right/10) &times; (plans not refused/40). The 35 jury points (pipeline logic 20, runs locally 10, code quality 5) are not in this table. All runs: Apertus v1.5 8B Q4_K_M, qwen3.5 9B vision, temperature 0, schema-constrained decoding. The last row is the submitted code rerun from scratch on another machine (Ollama 0.40.4): the one difference is the non-determinism noted on slide 5.</p>
   <div class="fixes">
     <div><span class="d">20.4 &rarr; 32.2</span><span><strong>Decision order + hints.</strong> Apertus stopped refusing objects that are in the list and started planning relative instructions once the geometry was done for it. Multistep from 20% to 70%.</span></div>
     <div><span class="d">32.2 &rarr; 54.9</span><span><strong>Abstract answer forms + self-check.</strong> Concrete examples were copied verbatim ("there is no blue cube" to refuse a red cube). Removed. The check fired on 2 of 50 instructions and fixed both.</span></div>
@@ -282,7 +285,7 @@ tr.final td{font-weight:600;background:var(--apertus-bg)}
       <h3>What we chose, and why</h3>
       <ul>
         <li><strong>Apertus v1.5 8B, Q4_K_M, text-only</strong> (the smallest Apertus, 5 GB) does all language reasoning; <strong>qwen3.5 9B</strong> only lists objects with boxes.</li>
-        <li>Runs on a 5 GB Quadro P2200 + 32 GB RAM Windows box or a 16 GB M2 Mac. Dev set: about 8 min Apertus stage + about 1 min per scene vision.</li>
+        <li>Runs on a 5 GB Quadro P2200 + 32 GB RAM Windows box, a 16 GB M2 Mac, and a Linux aarch64 box (dev set in 638 s there; about 25 min on the P2200).</li>
         <li>Lesson: a small model decides well when counting, geometry and the answer grammar are taken off its plate, and when it is shown its own contradiction instead of a correct example.</li>
         <li>One command reproduces: <code>uv run python run.py --data heldout --out results_heldout.json</code></li>
       </ul>
@@ -298,14 +301,14 @@ tr.final td{font-weight:600;background:var(--apertus-bg)}
     <div class="col">
       <h3>Known limits</h3>
       <ul>
-        <li><strong>Non-determinism:</strong> Ollama with a partly CPU-offloaded model is not bit-for-bit repeatable at temperature 0 and a fixed seed; two full runs can differ in one answer. Mitigated by the second self-check round and <code>--reuse</code>, which replays logged replies where table and hints are unchanged.</li>
+        <li><strong>Non-determinism:</strong> Ollama is not bit-for-bit repeatable at temperature 0 and a fixed seed; two full runs can differ in one answer. A fresh clone on a second machine (Linux aarch64) scored 63.4: "pick up the object lying on the grey part" was asked instead of planned. Mitigated by the second self-check round and <code>--reuse</code>, which replays logged replies where table and hints are unchanged.</li>
         <li><strong>Held-out pixels</strong> cannot be checked locally; only the answer types are (32/32 plans, 8/8 no-plan).</li>
         <li>Resolve step uses a small synonym list; a new object vocabulary needs entries.</li>
       </ul>
     </div>
   </div>
   <div class="repo">
-    <span><strong>Code:</strong> <a href="https://github.com/jdawnduan/Apertus-2A-ZHAW">github.com/jdawnduan/Apertus-2A-ZHAW</a> · Apache-2.0 · README: committed answers re-score in 2 min, full rerun ~45 min on a 5 GB GPU</span>
+    <span><strong>Code:</strong> <a href="https://github.com/jdawnduan/Apertus-2A-ZHAW">github.com/jdawnduan/Apertus-2A-ZHAW</a> · Apache-2.0 · README: committed answers re-score in 2 min, full rerun ~45 min on a 5 GB GPU, 11 min on the second box</span>
     <span class="mono">results.json · results_heldout.json · attempts/README.md</span>
   </div>
   <div class="foot"><span>Apertus-2A-ZHAW · See It, Say It, Pick It</span><span>5 / 5</span></div>

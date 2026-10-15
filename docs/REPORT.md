@@ -83,8 +83,10 @@ box centre onto the object by colour). Apertus cannot repair a wrong label, so v
 ## Nondeterminism
 
 Temperature 0 and a fixed seed do not make Ollama repeatable with a model partly on the CPU: two full
-runs differ in about one answer in fifty, always at the self-check boundary. The second round is the
-mitigation; the dev score stayed at 65.0 across reruns, the held-out file may differ by one answer.
+runs differ in about one answer in fifty, always at the self-check boundary. A fresh clone on a second
+machine (Linux aarch64, Ollama 0.40.4) scored 63.4: "pick up the object lying on the grey part" was asked
+instead of planned, the other 49 answers matched. The second round is the mitigation; the held-out file
+may differ by one answer in the same way.
 
 ## Not tried, expected to help
 

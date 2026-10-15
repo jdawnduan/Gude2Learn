@@ -123,9 +123,10 @@ table Apertus saw, the hints, its raw replies). Both are ignored by git; the fin
 are in `attempts/`.
 
 Decoding is pinned (temperature 0, fixed seed), but Ollama with a partly CPU-offloaded model is
-not bit-for-bit repeatable: two full runs can differ in a single answer. On the dev set the
-score has stayed at 65.0 across reruns. The two-round self-check (step 5 below) is the
-mitigation.
+not bit-for-bit repeatable: two full runs can differ in a single answer. A fresh clone on a
+second machine (Linux aarch64, Ollama 0.40.4, `./setup.sh dev`, 638 s for the 50 instructions)
+scored 63.4: one relative instruction was asked instead of planned, everything else matched.
+The two-round self-check (step 5 below) is the mitigation.
 
 Useful flags: `--limit N` (first N instructions), `--reuse` (take replies from `<out>.raw.jsonl`
 where table and hints are unchanged, so a wording change reruns in seconds), `--no-hints` and

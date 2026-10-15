@@ -28,6 +28,7 @@ vision model, temperature 0, schema-constrained decoding.
 | 14.10 | Win11 | + "no clue" refusals steered to a question, pronoun-object rule ("take it off the gear") | 38/40 | 29.2 | 1/40 | 62.5 |
 | 15.10 | Win11 | questions and reasons rendered with object descriptions; wrong "not there" reasons re-checked | 38/40 | 29.2 | 1/40 | 62.5 |
 | 15.10 | Win11 | machine parts: layout pass asks for them, fragments merged, relabelled by size; size words bound to their own phrase; "put X under Y" plan check; two self-check rounds; fixed seed | 40/40 | 30.0 | 0/40 | **65.0** |
+| 15.10 | Linux aarch64 (2nd box) | reproduction of the final code from a fresh clone (`./setup.sh dev`, Ollama 0.40.4, 638 s): scene_09_i3 "pick up the object lying on the grey part" asked instead of planned, the other 49 answers identical | 39/40 | 29.2 | 1/40 | 63.4 |
 
 Held-out set (`results_heldout.json`, 40 instructions, category labels only): 32 of 32 plan
 instructions answered with a plan, 8 of 8 no-plan instructions with the right type. Pixel correctness
