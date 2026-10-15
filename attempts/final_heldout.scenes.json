@@ -1,0 +1,1150 @@
+{
+ "held_01": {
+  "version": 5,
+  "raw": "{\n  \"objects\": [\n    {\n      \"name\": \"mandarin\",\n      \"bbox\": [\n        129,\n        613,\n        257,\n        760\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"yellow_gear\",\n      \"bbox\": [\n        354,\n        606,\n        438,\n        702\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"red_cube\",\n      \"bbox\": [\n        581,\n        613,\n        715,\n        764\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"red_gear\",\n      \"bbox\": [\n        729,\n        142,\n        875,\n        308\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"red_gear\",\n      \"bbox\": [\n        733,\n        360,\n        882,\n        531\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"red_gear\",\n      \"bbox\": [\n        737,\n        594,\n        889,\n        769\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"grey_tray\",\n      \"bbox\": [\n        0,\n        39,\n        526,\n        894\n      ],\n      \"on_top_of\": null\n    }\n  ]\n}",
+  "layout": "{\"stacked\": [], \"trays\": [{\"name\": \"grey_tray\", \"bbox\": [0, 39, 526, 894]}, {\"name\": \"black_tray\", \"bbox\": [517, 0, 1000, 930]}], \"parts\": []}",
+  "layout_v": 2,
+  "objects": [
+   {
+    "base": "red_gear",
+    "bbox": [
+     1785,
+     291,
+     2142,
+     631
+    ],
+    "centre": [
+     1963,
+     461
+    ],
+    "size": [
+     357,
+     340
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "red_gear_1",
+    "in_tray": "black_tray",
+    "supports": [],
+    "desc": "the top red gear, in the black tray",
+    "pixel": [
+     1962,
+     456
+    ]
+   },
+   {
+    "base": "grey_tray",
+    "bbox": [
+     0,
+     80,
+     1288,
+     1831
+    ],
+    "centre": [
+     644,
+     955
+    ],
+    "size": [
+     1288,
+     1751
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "grey_tray",
+    "in_tray": null,
+    "supports": [],
+    "desc": "the grey tray on the left",
+    "pixel": [
+     1179,
+     967
+    ]
+   },
+   {
+    "base": "black_tray",
+    "bbox": [
+     1266,
+     0,
+     2448,
+     1905
+    ],
+    "centre": [
+     1857,
+     952
+    ],
+    "size": [
+     1182,
+     1905
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "black_tray",
+    "in_tray": null,
+    "supports": [],
+    "desc": "the black tray on the right",
+    "pixel": [
+     1761,
+     1627
+    ]
+   },
+   {
+    "base": "red_gear",
+    "bbox": [
+     1794,
+     737,
+     2159,
+     1087
+    ],
+    "centre": [
+     1976,
+     912
+    ],
+    "size": [
+     365,
+     350
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "red_gear_2",
+    "in_tray": "black_tray",
+    "supports": [],
+    "desc": "the middle red gear, in the black tray",
+    "pixel": [
+     1976,
+     915
+    ]
+   },
+   {
+    "base": "mandarin",
+    "bbox": [
+     316,
+     1255,
+     629,
+     1556
+    ],
+    "centre": [
+     472,
+     1405
+    ],
+    "size": [
+     313,
+     301
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "mandarin",
+    "in_tray": "grey_tray",
+    "supports": [],
+    "desc": "the mandarin at the bottom left, in the grey tray",
+    "pixel": [
+     464,
+     1413
+    ]
+   },
+   {
+    "base": "yellow_gear",
+    "bbox": [
+     867,
+     1241,
+     1072,
+     1438
+    ],
+    "centre": [
+     969,
+     1339
+    ],
+    "size": [
+     205,
+     197
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "yellow_gear",
+    "in_tray": "grey_tray",
+    "supports": [],
+    "desc": "the yellow gear in the centre, in the grey tray",
+    "pixel": [
+     965,
+     1344
+    ]
+   },
+   {
+    "base": "red_cube",
+    "bbox": [
+     1422,
+     1255,
+     1750,
+     1565
+    ],
+    "centre": [
+     1586,
+     1410
+    ],
+    "size": [
+     328,
+     310
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "red_cube",
+    "in_tray": "black_tray",
+    "supports": [],
+    "desc": "the red cube at the bottom, in the black tray",
+    "pixel": [
+     1591,
+     1420
+    ]
+   },
+   {
+    "base": "red_gear",
+    "bbox": [
+     1804,
+     1217,
+     2176,
+     1575
+    ],
+    "centre": [
+     1990,
+     1396
+    ],
+    "size": [
+     372,
+     358
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "red_gear_3",
+    "in_tray": "black_tray",
+    "supports": [],
+    "desc": "the bottom red gear, in the black tray",
+    "pixel": [
+     1985,
+     1402
+    ]
+   }
+  ],
+  "size": [
+   2448,
+   2048
+  ]
+ },
+ "held_02": {
+  "version": 5,
+  "raw": "{\n  \"objects\": [\n    {\n      \"name\": \"red_gear\",\n      \"bbox\": [\n        156,\n        273,\n        304,\n        446\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"red_gear\",\n      \"bbox\": [\n        125,\n        545,\n        279,\n        723\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"yellow_gear\",\n      \"bbox\": [\n        288,\n        514,\n        370,\n        609\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"mug\",\n      \"bbox\": [\n        784,\n        5,\n        945,\n        243\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"mandarin\",\n      \"bbox\": [\n        826,\n        217,\n        947,\n        357\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"banana\",\n      \"bbox\": [\n        542,\n        564,\n        875,\n        846\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"plate\",\n      \"bbox\": [\n        657,\n        362,\n        966,\n        728\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"saucer\",\n      \"bbox\": [\n        548,\n        98,\n        755,\n        334\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"grey_tray\",\n      \"bbox\": [\n        0,\n        41,\n        524,\n        892\n      ],\n      \"on_top_of\": null\n    }\n  ]\n}",
+  "layout": "{\n\"stacked\": [],\n\"trays\": [\n  {\n    \"name\": \"grey_tray\",\n    \"bbox\": [\n      0,\n      39,\n      524,\n      891\n    ]\n  }\n],\n\"parts\": []\n}",
+  "layout_v": 2,
+  "objects": [
+   {
+    "base": "saucer",
+    "bbox": [
+     1342,
+     201,
+     1848,
+     684
+    ],
+    "centre": [
+     1595,
+     442
+    ],
+    "size": [
+     506,
+     483
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "saucer",
+    "in_tray": null,
+    "supports": [],
+    "desc": "the saucer at the top",
+    "pixel": [
+     1597,
+     439
+    ]
+   },
+   {
+    "base": "mug",
+    "bbox": [
+     1919,
+     10,
+     2313,
+     498
+    ],
+    "centre": [
+     2116,
+     254
+    ],
+    "size": [
+     394,
+     488
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "mug",
+    "in_tray": null,
+    "supports": [],
+    "desc": "the mug at the top right",
+    "pixel": [
+     2112,
+     194
+    ]
+   },
+   {
+    "base": "red_gear",
+    "bbox": [
+     382,
+     559,
+     744,
+     913
+    ],
+    "centre": [
+     563,
+     736
+    ],
+    "size": [
+     362,
+     354
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "red_gear_1",
+    "in_tray": "grey_tray",
+    "supports": [],
+    "desc": "the upper red gear, in the grey tray",
+    "pixel": [
+     561,
+     737
+    ]
+   },
+   {
+    "base": "mandarin",
+    "bbox": [
+     2022,
+     444,
+     2318,
+     731
+    ],
+    "centre": [
+     2170,
+     587
+    ],
+    "size": [
+     296,
+     287
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "mandarin",
+    "in_tray": null,
+    "supports": [],
+    "desc": "the mandarin at the top right",
+    "pixel": [
+     2175,
+     584
+    ]
+   },
+   {
+    "base": "grey_tray",
+    "bbox": [
+     0,
+     84,
+     1283,
+     1827
+    ],
+    "centre": [
+     641,
+     955
+    ],
+    "size": [
+     1283,
+     1743
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "grey_tray",
+    "in_tray": null,
+    "supports": [],
+    "desc": "the grey tray on the left",
+    "pixel": [
+     492,
+     1303
+    ]
+   },
+   {
+    "base": "yellow_gear",
+    "bbox": [
+     705,
+     1053,
+     906,
+     1247
+    ],
+    "centre": [
+     805,
+     1150
+    ],
+    "size": [
+     201,
+     194
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "yellow_gear",
+    "in_tray": "grey_tray",
+    "supports": [],
+    "desc": "the yellow gear on the left, in the grey tray",
+    "pixel": [
+     805,
+     1153
+    ]
+   },
+   {
+    "base": "plate",
+    "bbox": [
+     1608,
+     741,
+     2365,
+     1491
+    ],
+    "centre": [
+     1986,
+     1116
+    ],
+    "size": [
+     757,
+     750
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "plate",
+    "in_tray": null,
+    "supports": [],
+    "desc": "the plate on the right",
+    "pixel": [
+     1995,
+     1114
+    ]
+   },
+   {
+    "base": "red_gear",
+    "bbox": [
+     306,
+     1116,
+     683,
+     1481
+    ],
+    "centre": [
+     494,
+     1298
+    ],
+    "size": [
+     377,
+     365
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "red_gear_2",
+    "in_tray": "grey_tray",
+    "supports": [],
+    "desc": "the lower red gear, in the grey tray",
+    "pixel": [
+     492,
+     1303
+    ]
+   },
+   {
+    "base": "banana",
+    "bbox": [
+     1327,
+     1155,
+     2142,
+     1733
+    ],
+    "centre": [
+     1734,
+     1444
+    ],
+    "size": [
+     815,
+     578
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "banana",
+    "in_tray": "plate",
+    "supports": [],
+    "desc": "the banana at the bottom right, on the plate",
+    "pixel": [
+     1628,
+     1430
+    ]
+   }
+  ],
+  "size": [
+   2448,
+   2048
+  ]
+ },
+ "held_03": {
+  "version": 5,
+  "raw": "{\n  \"objects\": [\n    {\n      \"name\": \"grey_tray\",\n      \"bbox\": [\n        0,\n        39,\n        524,\n        891\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"mug\",\n      \"bbox\": [\n        678,\n        132,\n        889,\n        325\n      ],\n      \"on_top_of\": \"black_tray\"\n    },\n    {\n      \"name\": \"plate\",\n      \"bbox\": [\n        656,\n        490,\n        970,\n        861\n      ],\n      \"on_top_of\": \"black_tray\"\n    },\n    {\n      \"name\": \"red_gear\",\n      \"bbox\": [\n        548,\n        360,\n        697,\n        532\n      ],\n      \"on_top_of\": \"black_tray\"\n    },\n    {\n      \"name\": \"yellow_gear\",\n      \"bbox\": [\n        556,\n        641,\n        638,\n        736\n      ],\n      \"on_top_of\": \"black_tray\"\n    },\n    {\n      \"name\": \"white_part\",\n      \"bbox\": [\n        715,\n        369,\n        852,\n        480\n      ],\n      \"on_top_of\": \"black_tray\"\n    },\n    {\n      \"name\": \"grey_part\",\n      \"bbox\": [\n        778,\n        61,\n        970,\n        235\n      ],\n      \"on_top_of\": \"black_tray\"\n    },\n    {\n      \"name\": \"grey_part\",\n      \"bbox\": [\n        881,\n        274,\n        979,\n        528\n      ],\n      \"on_top_of\": \"black_tray\"\n    }\n  ]\n}",
+  "layout": "{\n\"stacked\": [],\n\"trays\": [\n  {\n    \"name\": \"grey_tray\",\n    \"bbox\": [\n      0,\n      39,\n      524,\n      891\n    ]\n  }\n],\n\"parts\": [\n  {\n    \"name\": \"grey_part\",\n    \"bbox\": [\n      776,\n      59,\n      970,\n      234\n    ]\n  },\n  {\n    \"name\": \"grey_part\",\n    \"bbox\": [\n      881,\n      274,\n      979,\n      528\n    ]\n  }\n]\n}",
+  "layout_v": 2,
+  "objects": [
+   {
+    "base": "mug",
+    "bbox": [
+     1660,
+     270,
+     2176,
+     666
+    ],
+    "centre": [
+     1918,
+     468
+    ],
+    "size": [
+     516,
+     396
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "mug",
+    "in_tray": null,
+    "supports": [],
+    "desc": "the mug at the top right",
+    "pixel": [
+     1969,
+     449
+    ]
+   },
+   {
+    "base": "grey_part",
+    "bbox": [
+     1905,
+     125,
+     2375,
+     481
+    ],
+    "centre": [
+     2140,
+     303
+    ],
+    "size": [
+     470,
+     356
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "grey_part_1",
+    "in_tray": null,
+    "supports": [],
+    "desc": "the upper grey part",
+    "pixel": [
+     2263,
+     197
+    ]
+   },
+   {
+    "base": "grey_tray",
+    "bbox": [
+     0,
+     80,
+     1283,
+     1825
+    ],
+    "centre": [
+     641,
+     952
+    ],
+    "size": [
+     1283,
+     1745
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "grey_tray",
+    "in_tray": null,
+    "supports": [],
+    "desc": "the grey tray on the left",
+    "pixel": [
+     1179,
+     960
+    ]
+   },
+   {
+    "base": "red_gear",
+    "bbox": [
+     1342,
+     737,
+     1706,
+     1090
+    ],
+    "centre": [
+     1524,
+     913
+    ],
+    "size": [
+     364,
+     353
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "red_gear",
+    "in_tray": null,
+    "supports": [],
+    "desc": "the red gear in the centre",
+    "pixel": [
+     1524,
+     916
+    ]
+   },
+   {
+    "base": "small_part",
+    "bbox": [
+     1750,
+     756,
+     2086,
+     983
+    ],
+    "centre": [
+     1918,
+     869
+    ],
+    "size": [
+     336,
+     227
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "small_part",
+    "in_tray": null,
+    "supports": [],
+    "desc": "the small white part on the right",
+    "pixel": [
+     1916,
+     844
+    ]
+   },
+   {
+    "base": "grey_part",
+    "bbox": [
+     2157,
+     561,
+     2397,
+     1081
+    ],
+    "centre": [
+     2277,
+     821
+    ],
+    "size": [
+     240,
+     520
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "grey_part_2",
+    "in_tray": null,
+    "supports": [],
+    "desc": "the lower grey part",
+    "pixel": [
+     2259,
+     859
+    ]
+   },
+   {
+    "base": "yellow_gear",
+    "bbox": [
+     1361,
+     1313,
+     1562,
+     1507
+    ],
+    "centre": [
+     1461,
+     1410
+    ],
+    "size": [
+     201,
+     194
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "yellow_gear",
+    "in_tray": null,
+    "supports": [],
+    "desc": "the yellow gear at the bottom",
+    "pixel": [
+     1461,
+     1419
+    ]
+   },
+   {
+    "base": "plate",
+    "bbox": [
+     1606,
+     1004,
+     2375,
+     1763
+    ],
+    "centre": [
+     1990,
+     1383
+    ],
+    "size": [
+     769,
+     759
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "plate",
+    "in_tray": null,
+    "supports": [],
+    "desc": "the plate at the bottom right",
+    "pixel": [
+     1997,
+     1387
+    ]
+   }
+  ],
+  "size": [
+   2448,
+   2048
+  ]
+ },
+ "held_04": {
+  "version": 5,
+  "raw": "{\n  \"objects\": [\n    {\n      \"name\": \"mandarin\",\n      \"bbox\": [\n        129,\n        613,\n        254,\n        760\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"plate\",\n      \"bbox\": [\n        564,\n        58,\n        869,\n        405\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"red_cube\",\n      \"bbox\": [\n        793,\n        412,\n        939,\n        588\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"red_gear\",\n      \"bbox\": [\n        658,\n        609,\n        810,\n        788\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"red_gear\",\n      \"bbox\": [\n        874,\n        439,\n        982,\n        605\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"yellow_gear\",\n      \"bbox\": [\n        658,\n        687,\n        743,\n        786\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"grey_tray\",\n      \"bbox\": [\n        0,\n        41,\n        524,\n        892\n      ],\n      \"on_top_of\": null\n    }\n  ]\n}",
+  "layout": "{\n\"stacked\": [\n\t{\n\t\t\"top\": \"red_cube\",\n\t\t\"under\": \"red_gear\"\n\t},\n\t{\n\t\t\"top\": \"yellow_gear\",\n\t\t\"under\": \"red_gear\"\n\t}\n],\n\"trays\": [\n\t{\n\t\t\"name\": \"grey_tray\",\n\t\t\"bbox\": [\n\t\t\t0,\n\t\t\t41,\n\t\t\t526,\n\t\t\t893\n\t\t]\n\t},\n\t{\n\t\t\"name\": \"black_tray\",\n\t\t\"bbox\": [\n\t\t\t526,\n\t\t\t1,\n\t\t\t1000,\n\t\t\t934\n\t\t]\n\t}\n],\n\"parts\": [\n\t{\n\t\t\"name\": \"white_part\",\n\t\t\"bbox\": [\n\t\t\t564,\n\t\t\t58,\n\t\t\t867,\n\t\t\t405\n\t\t]\n\t}\n]\n}",
+  "layout_v": 2,
+  "objects": [
+   {
+    "base": "plate",
+    "bbox": [
+     1381,
+     119,
+     2127,
+     829
+    ],
+    "centre": [
+     1754,
+     474
+    ],
+    "size": [
+     746,
+     710
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "plate",
+    "in_tray": "black_tray",
+    "supports": [],
+    "desc": "the plate at the top right, in the black tray",
+    "pixel": [
+     1767,
+     447
+    ]
+   },
+   {
+    "base": "grey_tray",
+    "bbox": [
+     0,
+     84,
+     1283,
+     1827
+    ],
+    "centre": [
+     641,
+     955
+    ],
+    "size": [
+     1283,
+     1743
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "grey_tray",
+    "in_tray": null,
+    "supports": [],
+    "desc": "the grey tray on the left",
+    "pixel": [
+     1179,
+     974
+    ]
+   },
+   {
+    "base": "black_tray",
+    "bbox": [
+     1288,
+     2,
+     2448,
+     1913
+    ],
+    "centre": [
+     1868,
+     957
+    ],
+    "size": [
+     1160,
+     1911
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "black_tray",
+    "in_tray": null,
+    "supports": [],
+    "desc": "the black tray on the right",
+    "pixel": [
+     1752,
+     469
+    ]
+   },
+   {
+    "base": "red_cube",
+    "bbox": [
+     1941,
+     844,
+     2299,
+     1204
+    ],
+    "centre": [
+     2120,
+     1024
+    ],
+    "size": [
+     358,
+     360
+    ],
+    "on_top_of": "red_gear_1",
+    "note": null,
+    "name": "red_cube",
+    "in_tray": "black_tray",
+    "supports": [],
+    "desc": "the red cube on the right, in the black tray, lying on the red gear",
+    "pixel": [
+     2104,
+     1009
+    ]
+   },
+   {
+    "base": "red_gear",
+    "bbox": [
+     2140,
+     899,
+     2404,
+     1239
+    ],
+    "centre": [
+     2272,
+     1069
+    ],
+    "size": [
+     264,
+     340
+    ],
+    "on_top_of": null,
+    "note": "the smallest one",
+    "name": "red_gear_1",
+    "in_tray": "black_tray",
+    "supports": [
+     "red_cube"
+    ],
+    "desc": "the right red gear, in the black tray, with the red cube on it",
+    "pixel": [
+     2194,
+     1025
+    ]
+   },
+   {
+    "base": "mandarin",
+    "bbox": [
+     316,
+     1255,
+     622,
+     1556
+    ],
+    "centre": [
+     469,
+     1405
+    ],
+    "size": [
+     306,
+     301
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "mandarin",
+    "in_tray": "grey_tray",
+    "supports": [],
+    "desc": "the mandarin at the bottom left, in the grey tray",
+    "pixel": [
+     467,
+     1414
+    ]
+   },
+   {
+    "base": "yellow_gear",
+    "bbox": [
+     1611,
+     1407,
+     1819,
+     1610
+    ],
+    "centre": [
+     1715,
+     1508
+    ],
+    "size": [
+     208,
+     203
+    ],
+    "on_top_of": "red_gear_2",
+    "note": null,
+    "name": "yellow_gear",
+    "in_tray": "black_tray",
+    "supports": [],
+    "desc": "the yellow gear at the bottom right, in the black tray, lying on the red gear",
+    "pixel": [
+     1743,
+     1510
+    ]
+   },
+   {
+    "base": "red_gear",
+    "bbox": [
+     1611,
+     1247,
+     1983,
+     1614
+    ],
+    "centre": [
+     1797,
+     1430
+    ],
+    "size": [
+     372,
+     367
+    ],
+    "on_top_of": null,
+    "note": "the largest one",
+    "name": "red_gear_2",
+    "in_tray": "black_tray",
+    "supports": [
+     "yellow_gear"
+    ],
+    "desc": "the left red gear, in the black tray, with the yellow gear on it",
+    "pixel": [
+     1797,
+     1467
+    ]
+   }
+  ],
+  "size": [
+   2448,
+   2048
+  ]
+ },
+ "held_05": {
+  "version": 5,
+  "raw": "{\n  \"objects\": [\n    {\n      \"name\": \"grey_tray\",\n      \"bbox\": [\n        0,\n        39,\n        526,\n        894\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"red_gear\",\n      \"bbox\": [\n        547,\n        359,\n        691,\n        532\n      ],\n      \"on_top_of\": \"grey_tray\"\n    },\n    {\n      \"name\": \"yellow_gear\",\n      \"bbox\": [\n        740,\n        628,\n        829,\n        725\n      ],\n      \"on_top_of\": \"plate\"\n    },\n    {\n      \"name\": \"mug\",\n      \"bbox\": [\n        703,\n        181,\n        918,\n        369\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"plate\",\n      \"bbox\": [\n        654,\n        492,\n        970,\n        861\n      ],\n      \"on_top_of\": null\n    },\n    {\n      \"name\": \"grey_part\",\n      \"bbox\": [\n        623,\n        438,\n        845,\n        550\n      ],\n      \"on_top_of\": \"red_gear\"\n    },\n    {\n      \"name\": \"white_part\",\n      \"bbox\": [\n        719,\n        369,\n        852,\n        450\n      ],\n      \"on_top_of\": null\n    }\n  ]\n}",
+  "layout": "{\n\"stacked\": [\n  {\n    \"top\": \"yellow_gear\",\n    \"under\": \"plate\"\n  },\n  {\n    \"top\": \"grey_part\",\n    \"under\": \"red_gear\"\n  }\n],\n\"trays\": [\n  {\n    \"name\": \"grey_tray\",\n    \"bbox\": [\n      0,\n      41,\n      526,\n      893\n    ]\n  }\n],\n\"parts\": [\n  {\n    \"name\": \"grey_part\",\n    \"bbox\": [\n      624,\n      437,\n      848,\n      551\n    ]\n  },\n  {\n    \"name\": \"white_part\",\n    \"bbox\": [\n      656,\n      490,\n      969,\n      863\n    ]\n  },\n  {\n    \"name\": \"small_part\",\n    \"bbox\": [\n      718,\n      369,\n      852,\n      450\n    ]\n  }\n]\n}",
+  "layout_v": 2,
+  "objects": [
+   {
+    "base": "small_part",
+    "bbox": [
+     1760,
+     756,
+     2086,
+     922
+    ],
+    "centre": [
+     1923,
+     839
+    ],
+    "size": [
+     326,
+     166
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "small_part",
+    "in_tray": null,
+    "supports": [],
+    "desc": "the small white part on the right",
+    "pixel": [
+     1932,
+     834
+    ]
+   },
+   {
+    "base": "mug",
+    "bbox": [
+     1721,
+     371,
+     2247,
+     756
+    ],
+    "centre": [
+     1984,
+     563
+    ],
+    "size": [
+     526,
+     385
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "mug",
+    "in_tray": null,
+    "supports": [],
+    "desc": "the mug at the top right",
+    "pixel": [
+     2035,
+     558
+    ]
+   },
+   {
+    "base": "grey_tray",
+    "bbox": [
+     0,
+     80,
+     1288,
+     1831
+    ],
+    "centre": [
+     644,
+     955
+    ],
+    "size": [
+     1288,
+     1751
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "grey_tray",
+    "in_tray": null,
+    "supports": [],
+    "desc": "the grey tray on the left",
+    "pixel": [
+     1179,
+     963
+    ]
+   },
+   {
+    "base": "red_gear",
+    "bbox": [
+     1339,
+     735,
+     1692,
+     1090
+    ],
+    "centre": [
+     1515,
+     912
+    ],
+    "size": [
+     353,
+     355
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "red_gear",
+    "in_tray": null,
+    "supports": [
+     "grey_part"
+    ],
+    "desc": "the red gear in the centre, with the grey part on it",
+    "pixel": [
+     1539,
+     930
+    ]
+   },
+   {
+    "base": "grey_part",
+    "bbox": [
+     1525,
+     897,
+     2069,
+     1126
+    ],
+    "centre": [
+     1797,
+     1011
+    ],
+    "size": [
+     544,
+     229
+    ],
+    "on_top_of": "red_gear",
+    "note": null,
+    "name": "grey_part",
+    "in_tray": "plate",
+    "supports": [],
+    "desc": "the grey part on the right, on the plate, lying on the red gear",
+    "pixel": [
+     1975,
+     1050
+    ]
+   },
+   {
+    "base": "yellow_gear",
+    "bbox": [
+     1812,
+     1286,
+     2029,
+     1485
+    ],
+    "centre": [
+     1920,
+     1385
+    ],
+    "size": [
+     217,
+     199
+    ],
+    "on_top_of": "plate",
+    "note": null,
+    "name": "yellow_gear",
+    "in_tray": "plate",
+    "supports": [],
+    "desc": "the yellow gear at the bottom right, on the plate, lying on the plate",
+    "pixel": [
+     1917,
+     1395
+    ]
+   },
+   {
+    "base": "plate",
+    "bbox": [
+     1601,
+     1008,
+     2375,
+     1763
+    ],
+    "centre": [
+     1988,
+     1385
+    ],
+    "size": [
+     774,
+     755
+    ],
+    "on_top_of": null,
+    "note": null,
+    "name": "plate",
+    "in_tray": null,
+    "supports": [
+     "yellow_gear"
+    ],
+    "desc": "the plate at the bottom right, with the yellow gear on it",
+    "pixel": [
+     2004,
+     1408
+    ]
+   }
+  ],
+  "size": [
+   2448,
+   2048
+  ]
+ }
+}

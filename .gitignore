@@ -1,4 +1,7 @@
-results*.json
+# per-run caches and traces next to a results file (the final ones are kept under attempts/)
+*.scenes.json
 *.raw.jsonl
+!attempts/*.scenes.json
+!attempts/*.raw.jsonl
 __pycache__/
 .DS_Store

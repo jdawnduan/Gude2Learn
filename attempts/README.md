@@ -1,4 +1,19 @@
-# Run log
+# Attempts: run log and evidence
+
+What is in this folder:
+
+| File | What it is |
+|---|---|
+| `2026-10-13_mac_plain_prompt.report.json` | scorer report of the first two-stage pipeline with a plain prompt, 23.3/65 (M2 Pro Mac) |
+| `2026-10-13_mac_claude_prompt.report.json` | same day, a longer prompt variant, 17.7/65 (kept as a negative result) |
+| `final_dev.raw.jsonl`, `final_heldout.raw.jsonl` | the final run, one line per instruction: the scene table Apertus saw, the reference hints, its raw reply, the self-check issues and its corrected replies. This is the evidence for the jury's "pipeline logic" question |
+| `final_dev.scenes.json`, `final_heldout.scenes.json` | the final run's vision outputs (raw replies of both vision calls) and the derived table per scene |
+| `../report.json` | scorer report of the final dev-set run, 65.0/65 |
+| `../results.json`, `../results_heldout.json` | the submitted answers |
+
+Everything below is the run log: what was changed, what it scored, and what Apertus got wrong.
+
+## Run log
 
 Dev set, script part (max 65). All runs: Apertus v1.5 8B text-only Q4_K_M in Ollama, qwen3.5 9B as the
 vision model, temperature 0, schema-constrained decoding.
