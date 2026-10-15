@@ -181,7 +181,7 @@ def ollama_chat(base_url: str, model: str, prompt: str | list[dict], *, image_b6
 
 
 # ----------------------------------------------------------------------------- scene table
-CACHE_VERSION = 8   # bump when scene_table or refine_pixel changes, so an old results.scenes.json is rebuilt from its vision replies
+CACHE_VERSION = 9   # bump when scene_table, refine_pixel or aside_pixel changes, so an old results.scenes.json is rebuilt from its vision replies
 WORDS = {n: n.replace("_", " ") for n in NAMES} | {"small_part": "small white part"}   # internal name -> words
 
 
@@ -601,7 +601,7 @@ def resolve(text: str, objs: list[dict]) -> list[str]:
     cue = None
     # container mentions after the head: "from the black tray" / "that is on the plate" / "at the top of the grey tray"
     # narrow the candidates; with a put-verb a bare "in / on / to the <container>" is the destination instead
-    # ("put both fruits on the plate" moves both fruits, it does not look for fruit on the plate)
+    # ("put the fruit on the plate" moves the fruit, it does not look for fruit that is on the plate)
     put = re.match(r"\s*(please )?(put|place|move|set|lay|bring|transfer)\b", t)
     FILTER_PREPS = ("from", "that is on", "that are on", "lying on", "out of")
     filters, dests = [], []
@@ -696,7 +696,7 @@ def resolve(text: str, objs: list[dict]) -> list[str]:
         order = sorted(cands, key=key, reverse=om.group(2) in ("right", "bottom"))
         if idx < len(order):
             cands, cue = [order[idx]], f"{om.group(1)} from the {om.group(2)}"
-    elif len(cands) > 1 and not cue:
+    elif len(cands) > 1 and (not cue or cue.startswith("in/on ")):   # a direction may refine a container filter
         em = re.search(r"\b(left|right|top|bottom|upper|lower|leftmost|rightmost|topmost|highest|lowest)(most)?\b", t)
         rel = re.match(r"\w+ (of|side of) the (\w+)", t[em.start():]) if em else None
         if em and not (rel and rel.group(2) not in IMAGE_WORDS and not any(m["start"] == em.start() + rel.start(2) and any(
@@ -814,12 +814,17 @@ def check(ans: dict, hints: list[str], objs: list[dict]) -> list[str]:
         wrong = [p for p in picked if p in excluded and p not in aside]
         if wrong:
             issues.append(f"The instruction says except {', '.join(wrong)}: {', '.join(wrong)} stays where it is. Remove that move.")
+        # every object that is still lying on a picked object at the time of the pick, in one message: reporting one
+        # stack at a time made Apertus alternate between two corrections when two targets each carry something
+        unmoved = []
         for i, p in enumerate(picked):
-            tops = [t for t in (by_name.get(p, {}).get("supports") or []) if t not in picked[:i]]
-            if tops:
-                issues.append(f"{', '.join(tops)} lies on top of {p}: the plan must start with pick {tops[0]}, place none "
-                              f"(set it aside), and then continue with the moves you planned. This is a plan, not a refusal.")
-                break
+            unmoved += [(t, p) for t in (by_name.get(p, {}).get("supports") or [])
+                        if t not in picked[:i] and t not in {u for u, _ in unmoved}]
+        if unmoved:
+            why = " and ".join(f"{t} lies on top of {p}" for t, p in unmoved)
+            firsts = "; ".join(f"pick {t}, place none" for t, _ in unmoved)
+            issues.append(f"{why}: the plan must start with {firsts} (set aside, all of them, in this one plan), and then "
+                          f"continue with the moves you planned. This is a plan, not a refusal.")
         dh = next((h for h in hints if h.startswith("Destination ")), None)
         if fm and picked and picked[0] != fm.split()[2]:
             issues.append(f"The instruction puts something under {fm.split()[2]}: {fm}")
@@ -853,12 +858,27 @@ def hints_text(hints: list[str]) -> str:
 ASIDE = "table"   # where a set-aside object is put down: "place none" before another pick becomes place on the table
 
 
-def to_answer(reply: str, objs: list[dict], iid: str) -> dict:
+def aside_pixel(objs: list[dict], w: int, h: int, step: int = 8) -> list[int]:
+    """A free spot on the table for a set-aside object: the pixel farthest from every box (on a coarse grid; the
+    trays' boxes count as occupied, so the spot is bare table)."""
+    occ = np.ones((h // step + 1, w // step + 1), np.uint8)
+    for o in objs:
+        x1, y1, x2, y2 = o["bbox"]
+        occ[max(0, y1 // step):y2 // step + 1, max(0, x1 // step):x2 // step + 1] = 0
+    if not occ.any():
+        return [w // 2, h // 2]
+    pad = cv2.copyMakeBorder(occ, 1, 1, 1, 1, cv2.BORDER_CONSTANT, value=0)
+    dist = cv2.distanceTransform(pad, cv2.DIST_L2, 5)
+    y, x = np.unravel_index(int(np.argmax(dist)), dist.shape)
+    return [min(w - 1, (int(x) - 1) * step), min(h - 1, (int(y) - 1) * step)]
+
+
+def to_answer(reply: str, objs: list[dict], iid: str, aside: list[int] | None = None) -> dict:
     """Apertus reply (steps: pick/place, ask_user, refuse) -> one schema-valid answer.
     target_pixel = a pixel on the first picked object. A "place none" that is followed by another pick is a set-aside:
     the one-object gripper must put the thing down, so it becomes place on the table (the organisers' reference plans
-    say "place aside"); a final bare pick stays a pick ("pick up the cube"). Anything unparseable becomes ask_user:
-    a schema miss scores 0 everywhere, a question at least cannot."""
+    say "place aside"), at `aside` (a free table pixel) when given; a final bare pick stays a pick ("pick up the
+    cube"). Anything unparseable becomes ask_user: a schema miss scores 0 everywhere, a question at least cannot."""
     by_name = {o["name"]: o for o in objs}
     ans = parse(reply) if isinstance(reply, str) else None
     steps = ans.get("actions") if isinstance(ans, dict) else None
@@ -881,7 +901,7 @@ def to_answer(reply: str, objs: list[dict], iid: str) -> dict:
                     a["pixel"] = by_name[d].get("pixel", by_name[d]["centre"])
                 actions.append(a)
             else:
-                actions.append({"action": "place", "object": ASIDE})
+                actions.append({"action": "place", "object": ASIDE} | ({"pixel": list(aside)} if aside else {}))
         if actions and actions[-1]["object"] == ASIDE:
             actions.pop()   # the last move was a bare pick, not a set-aside
         if actions:
@@ -941,7 +961,7 @@ def main():
             for o in objs:
                 o["pixel"] = refine_pixel(sc.rgb, o["bbox"])
             cache[d.name] = {"version": CACHE_VERSION, "raw": reply, "layout": layout, "layout_v": LAYOUT_VERSION,
-                             "objects": objs, "size": [w, h], "vision": vision_key}
+                             "objects": objs, "size": [w, h], "vision": vision_key, "aside": aside_pixel(objs, w, h)}
             cache_path.write_text(json.dumps(cache, indent=1))
             print(f"[see] {d.name}: {', '.join(o['name'] + (' on ' + o['on_top_of'] if o['on_top_of'] else '') for o in objs)}")
             if not objs:
@@ -967,7 +987,8 @@ def main():
                 else:
                     old = None
                     reply = ollama_chat(args.base_url, args.model, prompt, schema=schema, think=True if args.think else None)
-                ans = to_answer(reply, objs, iid)
+                aside = cache[d.name].get("aside")
+                ans = to_answer(reply, objs, iid, aside)
                 # self-check, at most CHECK_ROUNDS rounds: Apertus sees its answer and the contradiction with the hints and
                 # answers again; a later round catches an answer that the first correction pushed too far (a refusal
                 # instead of the corrected plan)
@@ -986,7 +1007,7 @@ def main():
                         reply_r = ollama_chat(args.base_url, args.model, msgs, schema=schema, think=True if args.think else None)
                     msgs.append({"role": "assistant", "content": reply_r})
                     rounds.append({"issues": issues, "reply": reply_r})
-                    ans = to_answer(reply_r, objs, iid)
+                    ans = to_answer(reply_r, objs, iid, aside)
                 issues = rounds[0]["issues"] if rounds else []
                 bad += ans["actions"][0].get("question") == FALLBACK_QUESTION
                 for a in ans["actions"]:   # what the person reads: names rendered as descriptions

@@ -66,10 +66,9 @@ fi
 serving && ok "Ollama answers on localhost:11434" || { echo "   Ollama is not reachable. Start it with 'ollama serve' in another terminal and run this script again."; exit 1; }
 
 step "Models (pulled only if missing; 12 GB in total, takes 5-30 min depending on the connection)"
-have="$(ollama list 2>/dev/null)"
+have="$(ollama list 2>/dev/null | awk 'NR > 1 {print $1}')"   # exact tags, so a present qwen3.5:4b does not stand in for the 9b
 for m in "$APERTUS" "$VISION_MODEL"; do
-    short="${m##*/}"; short="${short%%:*}"
-    if printf '%s' "$have" | grep -q "$short"; then ok "$m present"; else echo "   pulling $m"; ollama pull "$m" || exit 1; fi
+    if printf '%s\n' "$have" | grep -qxF -e "$m" -e "$m:latest"; then ok "$m present"; else echo "   pulling $m"; ollama pull "$m" || exit 1; fi
 done
 
 if [ "$RUN" = dev ] || [ "$RUN" = all ]; then

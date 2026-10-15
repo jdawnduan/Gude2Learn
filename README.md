@@ -4,9 +4,11 @@
 go in; the pixel of the object the robot should pick first and the ordered actions come out. An
 ambiguous instruction gets a question, an impossible or unsafe one a refusal.
 
-This repository is our submission. Apertus v1.5 8B (text only, 4-bit, in Ollama) makes every
-decision; an open vision model only lists the objects it sees; Python does the geometry and the
-rendering. Everything runs locally on a 5 GB GPU.
+This repository is our submission. Apertus v1.5 8B (text only, 4-bit, in Ollama) writes every
+answer; an open vision model only lists the objects it sees; Python does the geometry, turns it
+into hints and checks the answer against them, and renders the result. Everything runs locally on
+a 5 GB GPU. How much of each answer is Apertus and how much is Python is measured and stated
+under "What we disclose".
 
 | Dev set (50 instructions, scored by `starter/evaluate.py`) | |
 |---|---|
@@ -128,11 +130,16 @@ cached, so a second run skips the vision stage) and `<out>.raw.jsonl` (per instr
 table Apertus saw, the hints, its raw replies). Both are ignored by git; the final run's copies
 are in `attempts/`.
 
-Decoding is pinned (temperature 0, fixed seed), but Ollama with a partly CPU-offloaded model is
-not bit-for-bit repeatable: two full runs can differ in a single answer. A fresh clone on a
-second machine (Linux aarch64, Ollama 0.40.4, `./setup.sh dev`, 638 s for the 50 instructions)
-scored 63.4: one relative instruction was asked instead of planned, everything else matched.
-The two-round self-check (step 5 below) is the mitigation.
+Decoding is pinned (temperature 0, fixed seed), but Ollama is not bit-for-bit repeatable, and
+that holds for both models. A fresh clone on a second machine (Linux aarch64, Ollama 0.40.4,
+`./setup.sh dev`, about 640 s for the 50 instructions) scored 63.4 twice, once on the
+pre-review code and once on the submitted code (the scorer reports are in `attempts/`): both
+times scene_09_i3 "pick up the object lying on the grey part" was asked instead of planned, and
+the second run also showed that the vision stage differs between runs: 12 dev answers had the
+same plan with a slightly different pixel, one scene's parts were labelled differently, and one
+held-out scene got a different stacking reading, which changed three held-out plans. The
+self-check rounds (step 5 below) are the mitigation on the Apertus side; the vision side has none
+beyond the second vision call and the size-based part labels.
 
 Useful flags: `--limit N` (first N instructions), `--reuse` (take replies from `<out>.raw.jsonl`
 where table and hints are unchanged, so a wording change reruns in seconds), `--no-hints` and
@@ -180,7 +187,9 @@ text-only GGUF has no image path.
    round catches a correction that went too far, such as a refusal where the first round asked for
    a reordered plan. The last reply stands even if it still contradicts a hint.
 6. **Render** (Python, no model): a "place none" that is followed by another pick is a set-aside
-   and is written as a place on the table, so a one-object gripper never gets two picks in a row.
+   and is written as a place on the table (the organisers' reference plans say "place aside"),
+   with the pixel of the bare-table spot farthest from every box, so a one-object gripper never
+   gets two picks in a row.
    In a question or a refusal reason, every internal name is shown as a description a person can
    act on, built from the same geometry: "Which red gear should I pick up: the leftmost red gear
    (red_gear_1), the middle red gear (red_gear_2), or the rightmost red gear (red_gear_3)?" The
@@ -200,13 +209,23 @@ the instruction text.
   score is weaker evidence of generalisation than a blind run would be. The "32 of 32 plans, 8 of
   8 no-plan" figures were computed by us from the published labels; pixel correctness on the
   held-out set is unknown.
-- **How much is Apertus, how much is Python.** Every answer is parsed from an Apertus reply and
-  no Python path emits an answer type, but the hints state the resolved object and the applicable
-  rule in words, and the self-check messages name the required correction. Measured on the final
-  traces: Apertus's first replies alone (no self-check) score 50.4 of 65 on the dev set; the
-  self-check rounds, which fired on 8 of the 50 instructions, add the rest. Without hints and checks the same model scores 20.4. The
-  pipeline is a small text model kept on the rails by deterministic code, not an 8B model that
-  understands the workcell on its own.
+- **How much is Apertus, how much is Python.** Every answer is parsed from an Apertus reply. Python
+  has two fallbacks (a fixed question for an unparseable plan, dropping a pick of an unlisted
+  object) and neither fired in the 90 committed answers; Python also inserts the "place on the
+  table" step for a set-aside. But the hints state the resolved object and the applicable rule in
+  words, and the self-check messages name the required correction, sometimes the whole plan.
+  Measured on the final traces: Apertus's first replies alone (no self-check) score 50.4 of 65 on
+  the dev set; the self-check rounds, which fired on 8 of the 50 instructions, add the rest.
+  Without hints and checks the same model scores 20.4. The pipeline is a small text model kept on
+  the rails by deterministic code, not an 8B model that understands the workcell on its own.
+- **Three held-out first picks changed under the 15 October rules** (held_02_i3, held_02_i4,
+  held_04_i4), so three held-out target pixels are a direct consequence of rules written with the
+  held-out text and photos in view. The test file and one comment still contain held-out-style
+  sentences as examples.
+- **The committed answers are a `--reuse` re-render, not one fresh end-to-end run.** After the
+  15 October review fixes, 31 of the 90 instructions were re-asked and the other replies were
+  replayed from the previous traces (the prompt header was unchanged, so they are valid). The
+  organisers' re-run will be fresh; see the nondeterminism note in step 4.
 - **Weights:** a community 4-bit GGUF of swiss-ai's Apertus v1.5 8B (text only) and Ollama's
   build of Qwen 3.5 9B, both unmodified; see step 3 above.
 - **Known weaknesses** that the script score does not show are listed in `docs/REPORT.md`.
@@ -228,9 +247,10 @@ the instruction text.
 ## The answer format
 
 ```json
-{"instruction_id": "scene_06_i4", "target_pixel": [1747, 712],
- "actions": [{"action": "pick", "object": "yellow_gear"}, {"action": "place", "object": "black_tray"},
-             {"action": "pick", "object": "red_gear_2"}, {"action": "place", "object": "grey_tray"}]}
+{"instruction_id": "scene_06_i4", "target_pixel": [1763, 678],
+ "actions": [{"action": "pick", "object": "yellow_gear"}, {"action": "place", "object": "grey_tray"},
+             {"action": "pick", "object": "red_gear_1"}, {"action": "place", "object": "grey_tray"},
+             {"action": "pick", "object": "yellow_gear"}, {"action": "place", "object": "red_gear_1"}]}
 
 {"instruction_id": "scene_03_i5", "target_pixel": null,
  "actions": [{"action": "ask_user", "question": "Which red gear should I pick up: the leftmost red gear (red_gear_1), the middle red gear (red_gear_2), or the rightmost red gear (red_gear_3)?"}]}
@@ -240,9 +260,10 @@ the instruction text.
 ```
 
 `target_pixel` is `[u, v]`: column from the left, row from the top, in the full 2448 × 2048 photo.
-It is the first object picked: in the first example the sentence names the red gear, but the
-yellow gear lies on it, so the yellow gear is the target. A results file is
-`{"team": "...", "results": [ ... ]}`.
+It is the first object picked: in the first example the sentence ("put the red gear under the
+yellow gear in the grey tray") names the red gear, but the yellow gear lies on it, so the yellow
+gear is the target and goes aside first (here into the tray), the gear follows, and the yellow
+gear is put back on it. A results file is `{"team": "...", "results": [ ... ]}`.
 
 ## Scoring and rules (from the organisers)
 

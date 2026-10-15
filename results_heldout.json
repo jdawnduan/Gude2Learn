@@ -689,7 +689,11 @@
         },
         {
           "action": "place",
-          "object": "table"
+          "object": "table",
+          "pixel": [
+            104,
+            1936
+          ]
         },
         {
           "action": "pick",
@@ -742,7 +746,27 @@
         },
         {
           "action": "place",
-          "object": "table"
+          "object": "table",
+          "pixel": [
+            104,
+            1936
+          ]
+        },
+        {
+          "action": "pick",
+          "object": "red_cube",
+          "pixel": [
+            2104,
+            1009
+          ]
+        },
+        {
+          "action": "place",
+          "object": "table",
+          "pixel": [
+            104,
+            1936
+          ]
         },
         {
           "action": "pick",
@@ -1001,7 +1025,11 @@
         },
         {
           "action": "place",
-          "object": "table"
+          "object": "table",
+          "pixel": [
+            1528,
+            232
+          ]
         },
         {
           "action": "pick",

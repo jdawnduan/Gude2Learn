@@ -6,7 +6,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "starter"))
 from evaluate import answer_type  # noqa: E402
 
-from see_it_say_it_pick_it.pipeline import FALLBACK_QUESTION, check, humanize, resolve, scene_table, to_answer  # noqa: E402
+from see_it_say_it_pick_it.pipeline import FALLBACK_QUESTION, aside_pixel, check, humanize, resolve, scene_table, to_answer  # noqa: E402
 
 SEEN = {"objects": [
     {"name": "red_gear", "bbox": [500, 500, 600, 600], "on_top_of": None},
@@ -18,7 +18,7 @@ SEEN = {"objects": [
 LAYOUT = {"stacked": [], "trays": [{"name": "black_tray", "bbox": [400, 50, 900, 300]}]}
 
 
-def test_table():
+def check_table():
     objs = scene_table(SEEN, 2448, 2048, LAYOUT)
     names = [o["name"] for o in objs]
     # reading order: top row (black_tray, mug) first, then the lower row left to right
@@ -71,7 +71,7 @@ def test_table():
     return objs
 
 
-def test_resolve(objs):
+def check_resolve(objs):
     one = lambda text: [h for h in resolve(text, objs) if "exactly one" in h]
     assert "red_gear_1" in one("pick up the red gear on the left")[0]
     assert "red_gear_2" in one("pick up the second red gear from the left")[0]
@@ -96,7 +96,7 @@ def test_resolve(objs):
     assert "red_gear_1" in allh and "mug" not in allh
 
 
-def test_answer(objs):
+def check_answer(objs):
     assert to_answer("garbage", objs, "x")["actions"][0]["question"] == FALLBACK_QUESTION
     ans = to_answer('{"actions": [{"pick": "red_gear_2", "place": "grey_tray"}, {"pick": "mug", "place": "none"}]}', objs, "x")
     by = {o["name"]: o for o in objs}
@@ -106,6 +106,25 @@ def test_answer(objs):
     ans = to_answer('{"actions": [{"pick": "yellow_gear", "place": "none"}, {"pick": "red_gear_2", "place": "grey_tray"}]}', objs, "x")
     assert [(a["action"], a["object"]) for a in ans["actions"]] == \
         [("pick", "yellow_gear"), ("place", "table"), ("pick", "red_gear_2"), ("place", "grey_tray")]
+    # the set-aside spot is bare table: inside the photo and inside no box
+    aside = aside_pixel(objs, 2448, 2048)
+    assert 0 <= aside[0] < 2448 and 0 <= aside[1] < 2048
+    assert not any(o["bbox"][0] <= aside[0] <= o["bbox"][2] and o["bbox"][1] <= aside[1] <= o["bbox"][3] for o in objs)
+    ans = to_answer('{"actions": [{"pick": "yellow_gear", "place": "none"}, {"pick": "red_gear_2", "place": "grey_tray"}]}', objs, "x", aside)
+    assert ans["actions"][1] == {"action": "place", "object": "table", "pixel": aside}
+    # two targets each carrying something: one message names both tops (one at a time made Apertus alternate)
+    stacks = scene_table({"objects": [{"name": "red_gear", "bbox": [100, 450, 160, 510], "on_top_of": None},
+                                      {"name": "red_cube", "bbox": [110, 460, 150, 500], "on_top_of": "red_gear"},
+                                      {"name": "red_gear", "bbox": [300, 450, 360, 510], "on_top_of": None},
+                                      {"name": "yellow_gear", "bbox": [310, 460, 350, 500], "on_top_of": "red_gear"},
+                                      {"name": "grey_tray", "bbox": [50, 50, 500, 300], "on_top_of": None}]}, 1000, 1000)
+    hints = resolve("put both red gears in the grey tray", stacks)
+    issues = check(to_answer('{"actions": [{"pick": "red_gear_1", "place": "grey_tray"}, {"pick": "red_gear_2", "place": "grey_tray"}]}',
+                             stacks, "x"), hints, stacks)
+    assert len(issues) == 1 and "pick red_cube, place none; pick yellow_gear, place none" in issues[0]
+    assert not check(to_answer('{"actions": [{"pick": "red_cube", "place": "none"}, {"pick": "yellow_gear", "place": "none"}, '
+                               '{"pick": "red_gear_1", "place": "grey_tray"}, {"pick": "red_gear_2", "place": "grey_tray"}]}',
+                               stacks, "x"), hints, stacks)
     ans = to_answer('{"actions": [{"refuse": "no blue cube"}]}', objs, "x")
     assert ans["target_pixel"] is None and answer_type(ans) == ("refuse", None)
     ans = to_answer('{"actions": [{"pick": "grey_tray", "place": "plate"}]}', objs, "x")  # unpickable -> fallback
@@ -160,8 +179,9 @@ def test_answer(objs):
     two = scene_table({"objects": [{"name": "red_gear", "bbox": [100, 450, 160, 500], "on_top_of": None},
                                    {"name": "red_gear", "bbox": [100, 620, 160, 680], "on_top_of": None},
                                    {"name": "grey_tray", "bbox": [50, 400, 300, 700], "on_top_of": None}]}, 1000, 1000)
-    assert "red_gear_1" in [h for h in resolve("pick up the red gear at the top of the grey tray", two) if "exactly one" in h][0]
-    assert "red_gear_2" in [h for h in resolve("pick up the red gear at the bottom of the grey tray", two) if "exactly one" in h][0]
+    assert "red_gear_1" in [h for h in resolve("pick up the upper red gear in the grey tray", two) if "exactly one" in h][0]
+    assert "red_gear_1" in [h for h in resolve("pick up the red gear at the top of the tray", two) if "exactly one" in h][0]
+    assert "red_gear_2" in [h for h in resolve("pick up the red gear at the bottom of the tray", two) if "exactly one" in h][0]
     hints = resolve("put everything from the grey tray in the black tray", objs)  # = red_gear_1 only; mug is extra
     assert check(to_answer('{"actions": [{"pick": "red_gear_1", "place": "black_tray"}, {"pick": "mug", "place": "black_tray"}]}', objs, "x"), hints, objs)
     hints = resolve("put both red gears and the mug in the black tray", objs)     # the mug is named too: not extra
@@ -181,9 +201,10 @@ def test_answer(objs):
 
 
 def test_pipeline():
-    objs = test_table()
-    test_resolve(objs)
-    test_answer(objs)
+    """The one test pytest collects (`uv run pytest`); `python tests/test_pipeline.py` runs it too."""
+    objs = check_table()
+    check_resolve(objs)
+    check_answer(objs)
 
 
 if __name__ == "__main__":

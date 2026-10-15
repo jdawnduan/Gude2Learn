@@ -8,6 +8,7 @@ What is in this folder:
 | `2026-10-13_mac_claude_prompt.report.json` | same day, a longer prompt variant, 17.7/65 (kept as a negative result) |
 | `final_dev.raw.jsonl`, `final_heldout.raw.jsonl` | the final run, one line per instruction: the scene table Apertus saw, the reference hints, its raw reply, the self-check issues and its corrected replies. This is the evidence for the jury's "pipeline logic" question |
 | `final_dev.scenes.json`, `final_heldout.scenes.json` | the final run's vision outputs (raw replies of both vision calls) and the derived table per scene |
+| `2026-10-15_linux_box_10f78ac.report.json` | scorer report of the submitted code rerun from a fresh clone on a Linux aarch64 box, 63.4/65 (see the nondeterminism note) |
 | `../report.json` | scorer report of the final dev-set run, 65.0/65 |
 | `../results.json`, `../results_heldout.json` | the submitted answers |
 
@@ -30,18 +31,23 @@ vision model, temperature 0, schema-constrained decoding.
 | 15.10 | Win11 | machine parts: layout pass asks for them, fragments merged, relabelled by size; size words bound to their own phrase; "put X under Y" plan check; two self-check rounds; fixed seed | 40/40 | 30.0 | 0/40 | **65.0** |
 | 15.10 | Linux aarch64 (2nd box) | reproduction of the final code from a fresh clone (`./setup.sh dev`, Ollama 0.40.4, 638 s): scene_09_i3 "pick up the object lying on the grey part" asked instead of planned, the other 49 answers identical | 39/40 | 29.2 | 1/40 | 63.4 |
 | 15.10 | Win11 | after an internal review of the plans beyond the first pick: set-aside moves rendered as a place on the table (no two picks in a row), "except X" enforced, a destination named in the instruction is checked, a put-destination is no longer used as a filter ("put both fruits on the plate"), a direction inside a container is applied ("at the top of the grey tray"), three check rounds, concave-shape pixel rule (banana 3 px from the edge -> 70 px); 31 instructions re-asked, the rest reused | 40/40 | 30.0 | 0/40 | **65.0** |
+| 15.10 | Linux aarch64 (2nd box) | reproduction of the review-fix code (10f78ac) from a fresh clone (`./setup.sh dev`, report in this folder): scene_09_i3 asked instead of planned again; the vision stage also differed (12 dev pixels, one part label, one held-out stacking reading, three held-out plans) | 39/40 | 29.2 | 1/40 | 63.4 |
+| 15.10 | Win11 | second review pass: the stacking check names every unmoved top in one message (held_04_i4 had alternated between two corrections for three rounds and still lifted a gear with the cube on it), a direction may refine a container filter, the set-aside step gets a free-table pixel; the affected instructions re-asked, the rest reused | 40/40 | 30.0 | 0/40 | **65.0** |
 
 Held-out set (`results_heldout.json`, 40 instructions, category labels only): 32 of 32 plan
 instructions answered with a plan, 8 of 8 no-plan instructions with the right type (we computed this
 from the published labels; the pipeline does not read them). Pixel correctness cannot be checked
-locally. The self-check fired on 11 of 40 held-out instructions, 4 needed a second round and 2 a third.
+locally. The self-check fired on 11 of 40 held-out instructions, 3 needed a second round and 1 a third.
 Note that the resolver's synonym and spatial-cue rules were extended on the held-out wording after its
 release (see "What we disclose" in the top-level README).
 
-Two full runs with the same code are not bit-for-bit identical on this machine (Ollama, partly
-CPU-offloaded 8B model, temperature 0 and a fixed seed): one held-out answer and one dev answer flipped
-between runs. The second self-check round is the mitigation; `--reuse` re-renders from the logged
-replies when only rendering or a check message changed.
+Two full runs with the same code are not bit-for-bit identical (Ollama, temperature 0 and a fixed seed),
+and that holds for both models: on this machine one held-out and one dev answer flipped between runs; on
+the Linux box the same dev answer flipped in two runs and the vision boxes, one part label and one
+stacking reading differed as well (63.4 both times, scorer report `2026-10-15_linux_box_10f78ac.report.json`).
+The self-check rounds are the mitigation on the Apertus side; `--reuse` re-renders from the logged
+replies when only rendering or a check message changed, which is how the committed files were produced
+after the review fixes (31 of 90 re-asked).
 
 ## What each step fixed
 
@@ -65,8 +71,10 @@ replies when only rendering or a check message changed.
   object was picked at the end of three plans. Two held-out plans dropped the destination, "put both
   fruits on the plate" lost the mandarin (the destination was used as a filter), "at the top of the grey
   tray" chose the lower gear. Each became a hint plus a check rule; the affected instructions were
-  re-asked with `--reuse`, 31 of 90 in total. A third check round fixed held_04_i4, where the yellow gear
-  on a red gear was never moved within two rounds.
+  re-asked with `--reuse`, 31 of 90 in total. A third round did not fix held_04_i4: with a cube on one
+  gear and the yellow gear on the other, the check named one stack per round and Apertus alternated
+  between the two corrections; the second review pass made the check name every stack in one message,
+  and the plan (yellow gear aside, cube aside, both gears) is right after one round.
 
 ## Where Apertus still has difficulty (material for the report)
 
@@ -78,7 +86,8 @@ replies when only rendering or a check message changed.
 4. A bare "pick up the red gear" with three red gears gets a plan for red_gear_1 unless challenged.
 5. Invented physics: "the yellow gear is wider than 85 mm", "the grey part is not a movable object".
 6. A correction can push it too far: told that the cube lies on the gear and must be moved first, it
-   refuses ("unsafe: the cube must be removed first") instead of adding the move.
+   refuses ("unsafe: the cube must be removed first") instead of adding the move. Told of two stacks one
+   at a time, it fixes the one just named and undoes the other, round after round.
 7. Wrong reasons on right decisions: "NOT THERE: the red gear is in the list, so it is there" for a
    self-contradictory instruction; it needs the real reason quoted to state it. Even quoted, the rule
    label can stay wrong ("NOT THERE: ... nothing fits inside it: impossible (rule 3)" after three rounds).
