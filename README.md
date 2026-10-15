@@ -32,6 +32,7 @@ into hints, checks the answer against them and renders the result. Everything ru
 | 1–2 page report on where Apertus had difficulty | `docs/REPORT.pdf` (two pages A4; source `docs/REPORT.md`; the evidence behind it is in `attempts/`) |
 | Five slides (PDF) | `docs/slides.pdf` (source `docs/slides.html`) |
 | Earlier attempts, run log, raw traces of the final run | `attempts/` |
+| Hack Apertus generic project template (`technical_report.md`, `make run`) | not used: the ZHAW challenge lists its own deliverables, above. The technical report is `docs/REPORT.md`, the run command is the one above |
 
 ## Set up and run
 
