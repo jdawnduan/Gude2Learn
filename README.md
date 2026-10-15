@@ -93,8 +93,8 @@ answers. A full rerun of both sets is about an hour from a bare machine includin
 ### 2. Clone, install, check (2 minutes, no model needed)
 
 ```
-git clone https://github.com/jdawnduan/Apertus-2A-ZHAW.git
-cd Apertus-2A-ZHAW
+git clone https://github.com/jdawnduan/Gude2Learn.git
+cd Gude2Learn
 uv sync                                                   # Python 3.13 + numpy + opencv into .venv
 uv run python tests/test_pipeline.py                      # prints: ok
 uv run python starter/evaluate.py results.json --data dataset
