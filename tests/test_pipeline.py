@@ -182,6 +182,16 @@ def check_answer(objs):
     assert "red_gear_1" in [h for h in resolve("pick up the upper red gear in the grey tray", two) if "exactly one" in h][0]
     assert "red_gear_1" in [h for h in resolve("pick up the red gear at the top of the tray", two) if "exactly one" in h][0]
     assert "red_gear_2" in [h for h in resolve("pick up the red gear at the bottom of the tray", two) if "exactly one" in h][0]
+    # the camera merged the grey part and the small part into one "white_part" box: a part phrase, as the thing to pick
+    # or as a reference, falls back to the parts seen instead of "no such object"
+    merged = scene_table({"objects": [{"name": "white_part", "bbox": [300, 400, 580, 580], "on_top_of": None},
+                                      {"name": "red_cube", "bbox": [450, 500, 620, 670], "on_top_of": None},
+                                      {"name": "red_gear", "bbox": [100, 700, 160, 760], "on_top_of": None},
+                                      {"name": "mandarin", "bbox": [800, 100, 880, 180], "on_top_of": None}]}, 1000, 1000)
+    hints = resolve("pick up the object lying on the grey part", merged)
+    assert not any("no such object" in h for h in hints)
+    assert "red_cube" in [h for h in hints if "exactly one" in h][0]
+    assert "white_part" in [h for h in resolve("pick up the grey part", merged) if "exactly one" in h][0]
     hints = resolve("put everything from the grey tray in the black tray", objs)  # = red_gear_1 only; mug is extra
     assert check(to_answer('{"actions": [{"pick": "red_gear_1", "place": "black_tray"}, {"pick": "mug", "place": "black_tray"}]}', objs, "x"), hints, objs)
     hints = resolve("put both red gears and the mug in the black tray", objs)     # the mug is named too: not extra

@@ -75,23 +75,29 @@ write a reason that uses the fact it was given.
 
 ## Vision limits
 
-qwen3.5 9B at 1024 px confuses the three machine parts, splits or misses the small module, finds the flat
-black tray only in a dedicated second call (and still misses it in 7 of 15 scene tables), and reports
-stacking rarely and sometimes reversed. The fixes are mechanical: a second call for trays, stacks and
+qwen3.5 9B at 1024 px confuses the three machine parts, splits or misses the small module or merges it
+with the grey part next to it (three of four runs on scene_09), finds the flat black tray only in a
+dedicated second call (and still misses it in 7 of 15 scene tables), and reports stacking rarely and
+sometimes reversed. The fixes are mechanical: a second call for trays, stacks and
 parts; fragments merged; parts relabelled by box size since the camera is fixed; the target pixel moved
 from the box centre onto the object by colour, or to the centre of the largest inscribed circle for a
 concave shape such as the banana. Apertus cannot repair a wrong label, so vision is its ceiling.
 
-## Nondeterminism, both models
+## Nondeterminism: one vision box decides between 65.0 and 63.4
 
-Temperature 0 and a fixed seed do not make Ollama repeatable. A fresh clone on a second machine (Linux
-aarch64, Ollama 0.40.4) scored 63.4 twice, on the pre-review and on the submitted code: both times "pick
-up the object lying on the grey part" was asked instead of planned. The second run also showed that the
-vision stage varies: 12 dev answers kept their plan with a slightly different pixel, one scene's parts were
-labelled differently, and one held-out scene got a different stacking reading, which changed three
-held-out plans. The check rounds mitigate the Apertus side; the vision side has only the second call and
-the size-based labels. The committed files are a `--reuse` re-render: after the review fixes, 31 of 90
-instructions were re-asked and the other replies replayed from the previous traces (prompt unchanged).
+Four full runs exist: the committed run on the Windows box (65.0), three runs of a fresh clone on a Linux
+aarch64 box (63.4, identical to each other), and a second fresh run on the Windows box with no cache
+(63.4). Every 63.4 is the same instruction, "pick up the object lying on the grey part", asked instead of
+planned, for the same reason: in those runs the vision model drew the grey part and the small white part
+of scene_09 as one box, so the table held no grey part and the resolver reported it as missing. The
+committed run is the one of four where the parts were drawn separately. Other than that, the vision
+tables agree across machines within a few pixels (13 of 15 scenes identical in names, stacks and trays);
+the Apertus stage repeated its answers on the Linux box run after run. The fix, made after this
+comparison, lets a part phrase fall back to the parts the camera did see also when it is a reference,
+as it already did for the thing to pick; re-rendering the fresh Windows tables with that rule gives 65.0
+and leaves the committed answers unchanged. A fresh Linux run with the fix is still outstanding. The
+committed files are a `--reuse` re-render: after the review fixes, 31 of 90 instructions were re-asked
+and the other replies replayed from the previous traces (prompt unchanged).
 
 ## What we disclose
 

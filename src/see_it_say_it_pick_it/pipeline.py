@@ -531,6 +531,14 @@ def resolve(text: str, objs: list[dict]) -> list[str]:
         if colour and not any(colour in OBJECT_COLOURS.get(b, set()) for b in m["bases"]):
             m["phrase"], m["bases"], m["start"] = f"{colour} {m['phrase']}", [], cm.start(1)
         m["cands"] = [o for b in m["bases"] for o in by_base.get(b, [])]
+    # the camera labels the three machine parts unreliably (and sometimes merges two of them into one box): a part
+    # phrase that matches no label falls back to the parts it did see, whether the phrase is the thing to pick or a
+    # reference ("the object lying on the grey part"); "small white part" takes the smallest of them
+    parts_seen = [o for o in objs if o["base"] in PARTS]
+    for m in ms:
+        if not m["cands"] and m["bases"] and all(b in PARTS for b in m["bases"]) and parts_seen:
+            m["cands"] = [min(parts_seen, key=lambda o: o["size"][0] * o["size"][1])] if m["bases"] == ["small_part"] else list(parts_seen)
+            m["part_fallback"] = True
     hints: list[str] = []
     um = UNSAFE_RE.search(t)
     if um:
@@ -568,16 +576,10 @@ def resolve(text: str, objs: list[dict]) -> list[str]:
         return hints
     head = pick_ms[0]
     cands = [o for o in head["cands"] if o["base"] in PICKABLE]
-    parts = ("grey_part", "white_part", "small_part")
-    if not cands and all(b in parts for b in head["bases"]):
-        # the camera labels the three parts unreliably: fall back to the parts it did see
-        cands = [o for o in objs if o["base"] in parts]
-        if cands and head["bases"] == ["small_part"]:
-            cands = [min(cands, key=lambda o: o["size"][0] * o["size"][1])]
-        if cands:
-            hints = [h for h in hints if head["phrase"] not in h]
-            hints.append(f'"{head["phrase"]}" is not labelled as such, but the camera labels the parts unreliably; '
-                         f'the part(s) it sees: {", ".join(o["name"] for o in cands)}.')
+    for m in ms:
+        if m.get("part_fallback"):
+            hints.append(f'"{m["phrase"]}" is not labelled as such, but the camera labels the parts unreliably; '
+                         f'the part(s) it sees: {", ".join(o["name"] for o in m["cands"])}.')
     if not cands:
         return hints
     # "put X under Y": Y ends up lying on X, so Y is moved first (it usually lies on X already)

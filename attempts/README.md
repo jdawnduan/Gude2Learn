@@ -8,7 +8,9 @@ What is in this folder:
 | `2026-10-13_mac_claude_prompt.report.json` | same day, a longer prompt variant, 17.7/65 (kept as a negative result) |
 | `final_dev.raw.jsonl`, `final_heldout.raw.jsonl` | the final run, one line per instruction: the scene table Apertus saw, the reference hints, its raw reply, the self-check issues and its corrected replies. This is the evidence for the jury's "pipeline logic" question |
 | `final_dev.scenes.json`, `final_heldout.scenes.json` | the final run's vision outputs (raw replies of both vision calls) and the derived table per scene |
-| `2026-10-15_linux_box_10f78ac.report.json` | scorer report of the submitted code rerun from a fresh clone on a Linux aarch64 box, 63.4/65 (see the nondeterminism note) |
+| `2026-10-15_linux_box_10f78ac.report.json`, `2026-10-15_linux_box_7ee7b05.report.json` | scorer reports of two reruns on a Linux aarch64 box (review-fix code and second-pass code), 63.4/65 each, identical answers (see the nondeterminism note) |
+| `2026-10-15_win11_fresh_922f1a1.report.json` | a second full run on the Windows box with no cache (vision and Apertus from scratch), 63.4/65: same flipped answer as the Linux box, same cause |
+| `2026-10-15_win11_fresh_part_fallback.report.json` | the same fresh Windows tables re-rendered after the part-reference fallback, 65.0/65 |
 | `../report.json` | scorer report of the final dev-set run, 65.0/65 |
 | `../results.json`, `../results_heldout.json` | the submitted answers |
 
@@ -33,6 +35,9 @@ vision model, temperature 0, schema-constrained decoding.
 | 15.10 | Win11 | after an internal review of the plans beyond the first pick: set-aside moves rendered as a place on the table (no two picks in a row), "except X" enforced, a destination named in the instruction is checked, a put-destination is no longer used as a filter ("put both fruits on the plate"), a direction inside a container is applied ("at the top of the grey tray"), three check rounds, concave-shape pixel rule (banana 3 px from the edge -> 70 px); 31 instructions re-asked, the rest reused | 40/40 | 30.0 | 0/40 | **65.0** |
 | 15.10 | Linux aarch64 (2nd box) | reproduction of the review-fix code (10f78ac) from a fresh clone (`./setup.sh dev`, report in this folder): scene_09_i3 asked instead of planned again; the vision stage also differed (12 dev pixels, one part label, one held-out stacking reading, three held-out plans) | 39/40 | 29.2 | 1/40 | 63.4 |
 | 15.10 | Win11 | second review pass: the stacking check names every unmoved top in one message (held_04_i4 had alternated between two corrections for three rounds and still lifted a gear with the cube on it), a direction may refine a container filter, the set-aside step gets a free-table pixel; the affected instructions re-asked, the rest reused | 40/40 | 30.0 | 0/40 | **65.0** |
+| 15.10 | Linux aarch64 (2nd box) | third run there, second-pass code (7ee7b05): identical to the previous box run, answer for answer | 39/40 | 29.2 | 1/40 | 63.4 |
+| 15.10 | Win11 | fresh full run with no cache on this box (vision and Apertus from scratch, 1623 s dev, 1011 s held-out): scene_09_i3 asked instead of planned, because the vision model drew the grey part and the small part as one box; 13 of 15 tables otherwise identical to the committed ones | 39/40 | 29.2 | 1/40 | 63.4 |
+| 15.10 | Win11 | part-reference fallback: a part phrase with no matching label falls back to the parts seen also as a reference ("lying on the grey part"), not only as the thing to pick; the fresh Windows tables re-rendered with it (one re-ask); committed answers unchanged | 40/40 | 30.0 | 0/40 | 65.0 (fresh tables) |
 
 Held-out set (`results_heldout.json`, 40 instructions, category labels only): 32 of 32 plan
 instructions answered with a plan, 8 of 8 no-plan instructions with the right type (we computed this
@@ -41,13 +46,17 @@ locally. The self-check fired on 11 of 40 held-out instructions, 3 needed a seco
 Note that the resolver's synonym and spatial-cue rules were extended on the held-out wording after its
 release (see "What we disclose" in the top-level README).
 
-Two full runs with the same code are not bit-for-bit identical (Ollama, temperature 0 and a fixed seed),
-and that holds for both models: on this machine one held-out and one dev answer flipped between runs; on
-the Linux box the same dev answer flipped in two runs and the vision boxes, one part label and one
-stacking reading differed as well (63.4 both times, scorer report `2026-10-15_linux_box_10f78ac.report.json`).
-The self-check rounds are the mitigation on the Apertus side; `--reuse` re-renders from the logged
-replies when only rendering or a check message changed, which is how the committed files were produced
-after the review fixes (31 of 90 re-asked).
+Four full runs exist and three of them score 63.4: the committed Windows run (65.0), three Linux box
+runs (63.4, identical to each other) and a fresh no-cache Windows run (63.4). Every 63.4 is scene_09_i3
+asked instead of planned, and the cause is one vision box: in those runs the grey part and the small
+white part of scene_09 were drawn as one box, so the table held no grey part. The committed run is the
+one of four where the vision model drew them apart. The rest of the vision tables agree across machines
+within a few pixels (13 of 15 scenes identical in names, stacks and trays), and the Apertus stage
+repeated its answers on the Linux box run after run. The part-reference fallback (last row above)
+resolves the merged-box table correctly; a fresh Linux run with it is still outstanding. The self-check
+rounds are the mitigation on the Apertus side; `--reuse` re-renders from the logged replies when only
+rendering or a check message changed, which is how the committed files were produced after the review
+fixes (31 of 90 re-asked).
 
 ## What each step fixed
 
@@ -102,7 +111,8 @@ after the review fixes (31 of 90 re-asked).
 - Stacking is reported rarely and sometimes reversed (gears "on" the cube); a physical prior flips cube/gear
   pairs and a box-overlap fallback catches gear-on-gear.
 - The three machine parts are confused (the small white module is called "white_part", the grey plates
-  "small_part") and the small module is sometimes split into two boxes or missed entirely. Since 15.10 the
+  "small_part") and the small module is sometimes split into two boxes, missed entirely, or merged with the
+  grey part next to it into one box (three of four runs on scene_09). Since 15.10 the
   layout pass asks for the parts explicitly, touching fragments are merged, and each part is relabelled by
   the long side of its box (small ~330 px, grey 440-545 px, white ~650 px in the 2448 px photo).
 - Boxes are loose: the box centre of a banana lies on the table (fixed by colour-based pixel refinement).

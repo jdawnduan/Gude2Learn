@@ -130,16 +130,21 @@ cached, so a second run skips the vision stage) and `<out>.raw.jsonl` (per instr
 table Apertus saw, the hints, its raw replies). Both are ignored by git; the final run's copies
 are in `attempts/`.
 
-Decoding is pinned (temperature 0, fixed seed), but Ollama is not bit-for-bit repeatable, and
-that holds for both models. A fresh clone on a second machine (Linux aarch64, Ollama 0.40.4,
-`./setup.sh dev`, about 640 s for the 50 instructions) scored 63.4 twice, once on the
-pre-review code and once on the submitted code (the scorer reports are in `attempts/`): both
-times scene_09_i3 "pick up the object lying on the grey part" was asked instead of planned, and
-the second run also showed that the vision stage differs between runs: 12 dev answers had the
-same plan with a slightly different pixel, one scene's parts were labelled differently, and one
-held-out scene got a different stacking reading, which changed three held-out plans. The
-self-check rounds (step 5 below) are the mitigation on the Apertus side; the vision side has none
-beyond the second vision call and the size-based part labels.
+Decoding is pinned (temperature 0, fixed seed), but the vision stage is not bit-for-bit
+repeatable across machines, and one vision difference is enough to flip an answer. Four full
+runs exist (scorer reports in `attempts/`): the committed run on this Windows box (65.0), a
+fresh clone on a Linux aarch64 box run three times (63.4 each time, identical to each other), and
+a second fresh run on the Windows box with no cache (63.4). Every 63.4 is the same instruction,
+scene_09_i3 "pick up the object lying on the grey part", asked instead of planned, and the cause
+is the same: in those runs the vision model drew the grey part and the small white part as one
+box, so the table held no "grey part" and the resolver reported it as missing. The committed run
+is the one of four where the two parts were drawn separately. Vision boxes otherwise agree within
+a few pixels across machines (13 of 15 scene tables identical in names, stacks and trays). The
+fix, made on 15 October after this comparison, lets a part phrase fall back to the parts the
+camera did see also when the phrase is a reference, as it already did for the thing to pick;
+re-rendering the fresh Windows tables with that rule gives 65.0, and the committed answers are
+unchanged by it. A fresh run on the Linux box with the fix is still outstanding. On the Apertus
+side, the self-check rounds (step 5 below) are the mitigation.
 
 Useful flags: `--limit N` (first N instructions), `--reuse` (take replies from `<out>.raw.jsonl`
 where table and hints are unchanged, so a wording change reruns in seconds), `--no-hints` and
