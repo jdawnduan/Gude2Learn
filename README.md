@@ -18,7 +18,7 @@ rendering. Everything runs locally on a 5 GB GPU.
 
 | Deliverable | Where |
 |---|---|
-| Public Apache-2.0 repository, reproducible in 15 minutes | this repository, `LICENSE` |
+| Public Apache-2.0 repository, reproducible | this repository, `LICENSE`; the committed answers re-score in 2 minutes, a full rerun takes about 45 minutes plus the model download (see the time budget below) |
 | Results file for the dev set | `results.json`; its scorer report `report.json` |
 | `results_heldout.json` for the five held-out scenes | `results_heldout.json` (produced by the one command below) |
 | One command that runs the pipeline on any folder of scenes | `uv run python run.py --data <folder> --out <file>` |
@@ -30,6 +30,27 @@ rendering. Everything runs locally on a 5 GB GPU.
 
 Tested on Windows 11 (Quadro P2200 5 GB + 32 GB RAM) and macOS (M2 Pro 16 GB). Linux works the
 same way. Nothing leaves the machine: Ollama serves both models on `localhost:11434`.
+
+### Prerequisites and time budget
+
+| Need | Why |
+|---|---|
+| 64-bit Windows, macOS or Linux with 16 GB RAM or more | both models run partly on the CPU on small GPUs; 16 GB is the smallest tested |
+| A GPU is optional | 5 GB VRAM was enough for every number in this repository; more VRAM only makes it faster. CPU-only is untested |
+| ~20 GB free disk | 12 GB of models, 5 GB of data and photos, the Python environment |
+| Internet once | to install uv and Ollama and to pull the two models; the runs themselves are offline |
+| `git`, `uv`, `ollama` on the PATH, Ollama running | `ollama serve` or the desktop app; `ollama list` must answer |
+
+| Step | Time |
+|---|---|
+| install uv and Ollama | 5 minutes |
+| clone + `uv sync` + tests + score the committed answers (no model) | 2 minutes |
+| `ollama pull` of both models (12 GB) | depends on the connection: 5 minutes at 50 MB/s, 30 minutes at 8 MB/s |
+| full dev-set run (10 scenes, 50 instructions) on the 5 GB GPU | ~25 minutes; ~10 of them are the vision stage, cached afterwards |
+| held-out run (5 scenes, 40 instructions) | ~20 minutes |
+
+So: the 15-minute path is steps 1 and 2 below, which reproduces the score from the committed
+answers. A full rerun of both sets is about an hour from a bare machine including downloads.
 
 ### 1. Tools
 
