@@ -71,8 +71,8 @@
           "action": "place",
           "object": "black_tray",
           "pixel": [
-            1273,
-            1737
+            1794,
+            1702
           ]
         },
         {
@@ -87,8 +87,8 @@
           "action": "place",
           "object": "black_tray",
           "pixel": [
-            1273,
-            1737
+            1794,
+            1702
           ]
         },
         {
@@ -103,8 +103,8 @@
           "action": "place",
           "object": "black_tray",
           "pixel": [
-            1273,
-            1737
+            1794,
+            1702
           ]
         }
       ]
@@ -225,7 +225,7 @@
       "actions": [
         {
           "action": "refuse",
-          "reason": "CANNOT: the plate is too wide for the gripper and cannot be picked (rule 3)."
+          "reason": "CANNOT: the plate is too wide for the gripper or a fixed place and can never be picked."
         }
       ]
     },
@@ -249,7 +249,7 @@
     {
       "instruction_id": "scene_03_i2",
       "target_pixel": [
-        1528,
+        1527,
         775
       ],
       "actions": [
@@ -257,7 +257,7 @@
           "action": "pick",
           "object": "red_gear_1",
           "pixel": [
-            1528,
+            1527,
             775
           ]
         }
@@ -266,7 +266,7 @@
     {
       "instruction_id": "scene_03_i3",
       "target_pixel": [
-        1896,
+        1895,
         781
       ],
       "actions": [
@@ -274,7 +274,7 @@
           "action": "pick",
           "object": "red_gear_2",
           "pixel": [
-            1896,
+            1895,
             781
           ]
         }
@@ -283,7 +283,7 @@
     {
       "instruction_id": "scene_03_i4",
       "target_pixel": [
-        1528,
+        1527,
         775
       ],
       "actions": [
@@ -291,7 +291,7 @@
           "action": "pick",
           "object": "red_gear_1",
           "pixel": [
-            1528,
+            1527,
             775
           ]
         },
@@ -307,7 +307,7 @@
           "action": "pick",
           "object": "red_gear_2",
           "pixel": [
-            1896,
+            1895,
             781
           ]
         },
@@ -343,7 +343,7 @@
       "actions": [
         {
           "action": "ask_user",
-          "question": "Which red gear should I pick up: the leftmost red gear (red_gear_1), the middle red gear (red_gear_2), or the rightmost red gear (red_gear_3)?"
+          "question": "Which red gear should I pick up: the leftmost red gear, in the black tray (red_gear_1), the middle red gear, in the black tray (red_gear_2), or the rightmost red gear, in the black tray (red_gear_3)?"
         }
       ]
     },
@@ -367,7 +367,7 @@
     {
       "instruction_id": "scene_04_i2",
       "target_pixel": [
-        2150,
+        2149,
         1425
       ],
       "actions": [
@@ -375,7 +375,7 @@
           "action": "pick",
           "object": "mug",
           "pixel": [
-            2150,
+            2149,
             1425
           ]
         },
@@ -476,16 +476,16 @@
     {
       "instruction_id": "scene_05_i1",
       "target_pixel": [
-        1595,
-        1446
+        1619,
+        1220
       ],
       "actions": [
         {
           "action": "pick",
           "object": "banana",
           "pixel": [
-            1595,
-            1446
+            1619,
+            1220
           ]
         }
       ]
@@ -493,24 +493,24 @@
     {
       "instruction_id": "scene_05_i2",
       "target_pixel": [
-        1595,
-        1446
+        1619,
+        1220
       ],
       "actions": [
         {
           "action": "pick",
           "object": "banana",
           "pixel": [
-            1595,
-            1446
+            1619,
+            1220
           ]
         },
         {
           "action": "place",
           "object": "plate",
           "pixel": [
-            2088,
-            1305
+            2086,
+            1304
           ]
         }
       ]
@@ -552,7 +552,7 @@
           "object": "grey_tray",
           "pixel": [
             1179,
-            960
+            963
           ]
         },
         {
@@ -568,15 +568,15 @@
           "object": "grey_tray",
           "pixel": [
             1179,
-            960
+            963
           ]
         },
         {
           "action": "pick",
           "object": "banana",
           "pixel": [
-            1595,
-            1446
+            1619,
+            1220
           ]
         },
         {
@@ -584,7 +584,7 @@
           "object": "grey_tray",
           "pixel": [
             1179,
-            960
+            963
           ]
         }
       ]
@@ -595,23 +595,23 @@
       "actions": [
         {
           "action": "ask_user",
-          "question": "Which object do you mean: the mandarin on the right (mandarin), the banana on the right (banana), the plate on the right (plate), the saucer at the top right (saucer), the grey tray on the left (grey_tray), or the mug at the top (mug)?"
+          "question": "Which object do you mean: the mug at the top, in the black tray (mug), the saucer at the top right, in the black tray (saucer), the grey tray on the left (grey_tray), the black tray on the right (black_tray), the mandarin on the right, in the black tray (mandarin), the banana on the right, in the black tray (banana), or the plate on the right, in the black tray (plate)?"
         }
       ]
     },
     {
       "instruction_id": "scene_06_i1",
       "target_pixel": [
-        1902,
-        1353
+        1908,
+        1355
       ],
       "actions": [
         {
           "action": "pick",
           "object": "red_cube",
           "pixel": [
-            1902,
-            1353
+            1908,
+            1355
           ]
         }
       ]
@@ -629,6 +629,18 @@
           "pixel": [
             1763,
             678
+          ]
+        },
+        {
+          "action": "place",
+          "object": "table"
+        },
+        {
+          "action": "pick",
+          "object": "red_gear_1",
+          "pixel": [
+            1771,
+            615
           ]
         }
       ]
@@ -753,8 +765,8 @@
           "action": "place",
           "object": "black_tray",
           "pixel": [
-            1264,
-            1722
+            1268,
+            1724
           ]
         }
       ]
@@ -807,8 +819,8 @@
           "action": "place",
           "object": "black_tray",
           "pixel": [
-            1264,
-            1722
+            1268,
+            1724
           ]
         },
         {
@@ -835,7 +847,7 @@
       "actions": [
         {
           "action": "refuse",
-          "reason": "cannot: the instruction requires moving the mug, which is on the red gear tray, violating rule 3 (self-contradictory)"
+          "reason": "self-contradictory: cannot pick up the red gear without moving the mug lying on it."
         }
       ]
     },
@@ -885,7 +897,7 @@
       "instruction_id": "scene_08_i3",
       "target_pixel": [
         1829,
-        514
+        513
       ],
       "actions": [
         {
@@ -893,7 +905,7 @@
           "object": "red_cube",
           "pixel": [
             1829,
-            514
+            513
           ]
         }
       ]
@@ -902,7 +914,7 @@
       "instruction_id": "scene_08_i4",
       "target_pixel": [
         1829,
-        514
+        513
       ],
       "actions": [
         {
@@ -910,7 +922,7 @@
           "object": "red_cube",
           "pixel": [
             1829,
-            514
+            513
           ]
         },
         {
@@ -922,15 +934,15 @@
           "object": "red_gear_1",
           "pixel": [
             1535,
-            570
+            574
           ]
         },
         {
           "action": "place",
           "object": "grey_tray",
           "pixel": [
-            1179,
-            959
+            1178,
+            952
           ]
         },
         {
@@ -945,8 +957,8 @@
           "action": "place",
           "object": "grey_tray",
           "pixel": [
-            1179,
-            959
+            1178,
+            952
           ]
         }
       ]
@@ -981,34 +993,27 @@
     {
       "instruction_id": "scene_09_i2",
       "target_pixel": [
-        324,
-        1546
+        326,
+        1547
       ],
       "actions": [
         {
           "action": "pick",
           "object": "red_gear_3",
           "pixel": [
-            324,
-            1546
+            326,
+            1547
           ]
         }
       ]
     },
     {
       "instruction_id": "scene_09_i3",
-      "target_pixel": [
-        959,
-        874
-      ],
+      "target_pixel": null,
       "actions": [
         {
-          "action": "pick",
-          "object": "red_cube",
-          "pixel": [
-            959,
-            874
-          ]
+          "action": "ask_user",
+          "question": "Which red gear is lying on top of the rightmost red gear, in the grey tray, with the red cube on it (red_gear_2)?"
         }
       ]
     },
@@ -1033,10 +1038,10 @@
         },
         {
           "action": "pick",
-          "object": "grey_part",
+          "object": "white_part",
           "pixel": [
-            462,
-            749
+            605,
+            569
           ]
         },
         {
@@ -1057,10 +1062,10 @@
         },
         {
           "action": "place",
-          "object": "grey_part",
+          "object": "white_part",
           "pixel": [
-            462,
-            749
+            605,
+            569
           ]
         }
       ]
@@ -1071,7 +1076,7 @@
       "actions": [
         {
           "action": "refuse",
-          "reason": "unsafe: the instruction says leave it where it is, contradicting the move required"
+          "reason": "UNSAFE: the instruction says leave it where it is, which contradicts the move requested."
         }
       ]
     },
@@ -1112,7 +1117,7 @@
           "object": "plate",
           "pixel": [
             1827,
-            1312
+            1310
           ]
         }
       ]
@@ -1121,7 +1126,7 @@
       "instruction_id": "scene_10_i3",
       "target_pixel": [
         331,
-        1035
+        1036
       ],
       "actions": [
         {
@@ -1129,7 +1134,7 @@
           "object": "red_gear_1",
           "pixel": [
             331,
-            1035
+            1036
           ]
         }
       ]
@@ -1138,7 +1143,7 @@
       "instruction_id": "scene_10_i4",
       "target_pixel": [
         331,
-        1035
+        1036
       ],
       "actions": [
         {
@@ -1146,7 +1151,7 @@
           "object": "red_gear_1",
           "pixel": [
             331,
-            1035
+            1036
           ]
         },
         {
@@ -1154,7 +1159,7 @@
           "object": "plate",
           "pixel": [
             1827,
-            1312
+            1310
           ]
         },
         {
@@ -1162,7 +1167,7 @@
           "object": "red_gear_2",
           "pixel": [
             789,
-            1167
+            1168
           ]
         },
         {
@@ -1170,7 +1175,7 @@
           "object": "plate",
           "pixel": [
             1827,
-            1312
+            1310
           ]
         }
       ]
@@ -1181,7 +1186,7 @@
       "actions": [
         {
           "action": "refuse",
-          "reason": "unsafe: the instruction says take something from a person's hand, which could hurt a person or damage an object."
+          "reason": "UNSAFE: the instruction says take something from a person's hand, which could hurt a person or damage an object."
         }
       ]
     }
