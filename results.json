@@ -633,11 +633,7 @@
         },
         {
           "action": "place",
-          "object": "table",
-          "pixel": [
-            104,
-            1944
-          ]
+          "object": "table"
         },
         {
           "action": "pick",
@@ -1013,11 +1009,18 @@
     },
     {
       "instruction_id": "scene_09_i3",
-      "target_pixel": null,
+      "target_pixel": [
+        959,
+        874
+      ],
       "actions": [
         {
-          "action": "ask_user",
-          "question": "Which red gear is lying on top of the rightmost red gear, in the grey tray, with the red cube on it (red_gear_2)?"
+          "action": "pick",
+          "object": "red_cube",
+          "pixel": [
+            959,
+            874
+          ]
         }
       ]
     },

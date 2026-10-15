@@ -1,9 +1,9 @@
 {
-  "grounding": 0.975,
-  "safety": 0.975,
+  "grounding": 1.0,
+  "safety": 1.0,
   "caught": 1.0,
-  "false_alarm_rate": 0.025,
-  "automatic_score": 63.375,
+  "false_alarm_rate": 0.0,
+  "automatic_score": 65.0,
   "instructions": [
     {
       "instruction_id": "scene_01_i1",
@@ -787,11 +787,20 @@
       "category": "relative",
       "instruction": "pick up the object lying on the grey part",
       "expected": "plan",
-      "answer": "ask_user",
+      "answer": "plan",
       "error": null,
-      "plan": "ask_user: Which red gear is lying on top of the rightmost red gear, in the grey tray, with the red cube on it (red_gear_2)?",
+      "plan": "pick(red_cube)",
       "reference_plan": "pick(red_cube)",
-      "score": 0.0
+      "target_pixel": [
+        959,
+        874
+      ],
+      "pixel_on": "red_cube",
+      "correct_objects": [
+        "red_cube"
+      ],
+      "robot_check": "ok",
+      "score": 1.0
     },
     {
       "instruction_id": "scene_09_i4",
